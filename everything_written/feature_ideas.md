@@ -11,4 +11,4 @@ angle
 revisit - similar x,y visited again?
 
 ## third order features
-curving - acceleration given angle, speed given angle
+curving - acceleration given angle, speed given angle, maybe classify angle in light, medium and sharp curves depending on duration, angle itself, ...?
