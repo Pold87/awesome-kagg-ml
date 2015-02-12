@@ -1,0 +1,1 @@
+1. cross validation: throw in random trips from other drivers and see how well we identify them
