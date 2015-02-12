@@ -25,6 +25,11 @@ distance = data.x + data.y
 plt.plot(data.x,data.y)
 
 
+
+
+
+###########Hic sunt dracones
+
 f,((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,sharex='col',sharey='row')
 ax1.plot(data.x,data.y)
 ax2.scatter(data.x,data.y)
@@ -52,10 +57,10 @@ import numpy as np
 #test_frame = pd.DataFrame()
 
 from os import listdir
-
-data_list = listdir(data_path)
-print(data_list)
-data_list = data_list[:1]
-print(data_list)
-for file in data_list:
-    test_frame[str(file)] = pd.read_csv(data_path+"\\"+file)
+#
+#data_list = listdir(data_path)
+#print(data_list)
+#data_list = data_list[:1]
+#print(data_list)
+#for file in data_list:
+#    test_frame[str(file)] = pd.read_csv(data_path+"\\"+file)
