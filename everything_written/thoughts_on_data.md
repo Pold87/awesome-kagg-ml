@@ -1,5 +1,8 @@
 #thoughts on the data
 
+##Score-explained
+The score assigned in the challenge is the AUC, which I guess is similar to ROC. That means we have a plot "ratio of false positives" vs "Ratio of false negatives". That explains why "all ones" leads to a performance of .5, since every possible false positive is met. I could add a diagram if necessary.
+
 ##problems
 1. data doesn't have same length, need to fill it? (unfortunate because it limits use of pandas/makes it inconvenient)
 2. data is randomly rotated -> x,y coordinates are basically useless
