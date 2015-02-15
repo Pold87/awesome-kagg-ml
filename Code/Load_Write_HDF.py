@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import pandas as pd
+
 from os import listdir, path
 
 ### Driver paths 
@@ -13,13 +14,8 @@ from os import listdir, path
 # drivers_path = r"/home/pold/Documents/Radboud/kaggle/drivers/"
 
 # All trips from driver 1 and 100 (to save time):
-# Linux:
-drivers_path = r"/home/pold/Documents/Radboud/kaggle/drivers_small/"
-# Windows:
 drivers_path = r"C:\Users\User\Documents\Radboud\kaggle\awesome-kagg-ml\drivers_small"
-
 drivers = listdir(drivers_path)
-
 
 # Kevin
 
@@ -57,6 +53,7 @@ drivers = listdir(drivers_path)
 
 
 # Store all trips for all drivers in a pandas data frame (multiindeces for driver and index)
+# The lists are just for temporarily storing the data frames
 
 mega_df = pd.DataFrame()
 
@@ -75,9 +72,7 @@ for driver in drivers:
         
         # Add trip to mega data frame
         mega_df = pd.concat([mega_df, 
-                                    pd.concat([df],
-                                              keys = [(driver, trip_num)],
-                                              names = ('Driver', 'Trip'))])
+                                    pd.concat([df], keys = [(driver, trip_num)])])
     
 # Save dataframe in HDF5 format
 mega_df.to_hdf('dataframe.h5','table')
