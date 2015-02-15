@@ -75,7 +75,7 @@ for driver in drivers:
 df_all_drivers = pd.concat(list_all_drivers_all_trips, axis = 0, keys = drivers)
 
 # Pickle the dataframe
-df_all_drivers.to_pickle("dataframe.pickle")
+df_all_drivers.to_hdf('dataframe.h5','table')
 
 
 

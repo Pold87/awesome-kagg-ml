@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
 
-path = "dataframe.npy"
-df = pd.read_pickle('dataframe.pickle')
+df = pd.read_hdf('dataframe.h5', key = 'table')
 print(df)
