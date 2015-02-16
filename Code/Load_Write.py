@@ -62,13 +62,10 @@ mega_df = pd.DataFrame()
 
 # Store all trips for all drivers in a pandas data frame (multiindeces for driver and index)
 # The lists are just for temporarily storing the data frames
-i = 0
+
 list_all_drivers_all_trips = []
 
 for driver in drivers:
-
-    i += 1
-    print(i)
 
     list_one_driver_all_trips = []
     trips_path = path.join(drivers_path, driver)
@@ -83,10 +80,10 @@ for driver in drivers:
 
         list_one_driver_all_trips.append(df_with_indices)
         
-    df_one_driver = pd.concat(list_one_driver_all_trips, axis = 0, keys = trips)
+    df_one_driver = pd.concat(list_one_driver_all_trips)
     list_all_drivers_all_trips.append(df_one_driver)
 
-df_all_drivers = pd.concat(list_all_drivers_all_trips, axis = 0, keys = drivers)
+df_all_drivers = pd.concat(list_all_drivers_all_trips)
 
 # Pickle the dataframe
 df_all_drivers.to_hdf('dataframe.h5','table')

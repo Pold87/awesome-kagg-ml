@@ -3,7 +3,7 @@ import numpy as np
 
 df = pd.read_hdf('dataframe.h5', key = 'table')
 
-print(df)
+print(df.loc[("1","200")])
 
 # print(df.groupby(level = [driver]).apply(len).reindex(index = (df)))
 
