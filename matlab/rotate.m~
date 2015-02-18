@@ -1,0 +1,12 @@
+function [ output_args ] = rotate( trip )
+%ROTATE Rotate trip to y = 0
+    [x, y] = trip(end,:);
+    
+    alpha = atan(y / x);
+    
+    rot_matrix = [ cos(alpha), -sin(alpha) ; sin(alpha), cos(alpha) ];
+    
+    
+
+end
+

@@ -5,10 +5,10 @@ x,y - thanks to rotation and trimming uninformative
 
 ## second order features
 *between two points in time*
-1. acceleration 
+1. acceleration
 2. speed
-3. angle
-4. revisit - similar x,y visited again?
+3. angle (- this is randomized for anonymity of the driver)
+4. revisit - similar x,y visited again? (- first/ last few seconds are removed for anonymity)
 5. deceleration/breaking (should be treated differently than acceleration)
 
 
@@ -36,11 +36,11 @@ x,y - thanks to rotation and trimming uninformative
 
 10. reverse start and endpoint of each trip and match to every other trip to see if driver took same way back (e.g. going to work and going back on the same way). Sliding window necessary because of moronic randomisation.
 
-11. utilizing 10: ratio of "often used ways"/"rarely used ways", i.e. does the driver mainly use his car to go to work or does he make many uniquie trips
+11. utilizing 10: ratio of "often used ways"/"rarely used ways", i.e. does the driver mainly use his car to go to work or does he make many unique trips
 
 12. utilizing 10: mean speed on way "to work" vs "from work" (might indicate that e.g. on the way from work to home there is stop and go, while not on the reversed trip, which would be a very distinct pattern)
 
-13. Maybe noralize all ways to "distance from origin = 1" or something. Not sure what can be accomplished by that.
+13. Maybe normalize all ways to "distance from origin = 1" or something. Not sure what can be accomplished by that.
 
 14. "AUC", not really, but area in the "slope" that connects start and endpoints
 
@@ -49,21 +49,21 @@ x,y - thanks to rotation and trimming uninformative
 
 1. being able to infer if trip was at day or at night (no idea how to reliably do that)
 
-2. does the driver trty to conserve fuel
+2. does the driver try to conserve fuel
 
 3. dies the driver prefer "fast" over "effective"(fuel consumption?)
 
-4. does the driver use a gps (does he follow some kind of optimal trajectory? This might only be inferrable for trips that 
+4. does the driver use a gps (does he follow some kind of optimal trajectory? This might only be inferrable for trips that
 occur often and are similar enough, also turning around a lot might be a valid feature-feature)
 
-5. 
+5.
 ## relatively hard classifiers
 
 *features that will be relatively rare, but when they can be found they are reliable.*
 
 **if they occur often enough, we can turn the unsupervised problem into a semi-supervised problem**
 
-1. a way that comes up often shoult be of the original driver (e.g. going to work and home)
+1. a way that comes up often should be of the original driver (e.g. going to work and home)
 
 2. assuming that driver has shitty car: All trips that involve a certain level of acceleration must be from another car
 
@@ -71,4 +71,3 @@ occur often and are similar enough, also turning around a lot might be a valid f
 
 4. upper speed limit? USA 80 mph max, so maybe not useful
 
- 
