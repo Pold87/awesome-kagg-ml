@@ -76,16 +76,21 @@ def read_chunk(chunk_num, drivers_path, drivers):
 
     print("Written to", filename)
 
-def read_all_chunks(drivers_path, drivers):
+def read_all_chunks(drivers_path, drivers, number_of_chunks):
 
     # Split list in 8 parts
-    chunked_drivers = chunks(drivers, len(drivers) // 8)
+    chunked_drivers = chunks(drivers, len(drivers) // number_of_chunks)
 
     for chunk_num, drivers in enumerate(chunked_drivers):
 
         read_chunk(chunk_num, drivers_path, drivers)
 
 def main():
+
+
+    # Define number of chunks (depends on your PC)
+
+    number_of_chunks = 8
 
     ### Driver paths 
     # Thomas
@@ -94,13 +99,13 @@ def main():
     # Volker
     
     # All trips and drivers from Kaggle:
-    drivers_path = r"/home/pold/Documents/Radboud/kaggle/drivers/"
+    # drivers_path = r"/home/pold/Documents/Radboud/kaggle/drivers/"
     
     # All trips from driver 1 and 100 (to save time):
     # Linux:
     # drivers_path = r"/home/pold/Documents/Radboud/kaggle/drivers_small"
     # Windows:
-    # drivers_path = r"C:\Users\User\Documents\Radboud\kaggle\awesome-kagg-ml\drivers_small"
+    drivers_path = r"C:\Users\User\Documents\Radboud\kaggle\awesome-kagg-ml\drivers_small"
     
     # Kevin
     
@@ -110,7 +115,7 @@ def main():
     
     # Fran
     drivers = listdir(drivers_path)
-    read_all_chunks(drivers_path, drivers)
+    read_all_chunks(drivers_path, drivers, number_of_chunks)
 
 
 if __name__ == "__main__":
