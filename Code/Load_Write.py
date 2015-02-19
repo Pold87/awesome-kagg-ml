@@ -90,7 +90,7 @@ def main():
 
     # Define number of chunks (depends on your PC)
 
-    number_of_chunks = 32
+    number_of_chunks = 16
 
     ### Driver paths 
     # Thomas
@@ -99,7 +99,7 @@ def main():
     # Volker
     
     # All trips and drivers from Kaggle:
-    drivers_path = r"/home/pold/Documents/Radboud/kaggle/drivers/"
+    drivers_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\drivers"
     
     # All trips from driver 1 and 100 (to save time):
     # Linux:
