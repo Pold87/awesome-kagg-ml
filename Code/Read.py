@@ -22,32 +22,26 @@ def create_submission_file(df):
     df.to_csv('submission-{}.csv'.format(file_num), index = False)
 
 
-def extract_all_features(features, df):            
-   
-    # Group data frame
-    grouped = df.groupby(level = ['Driver', 'Trip'])
-   
+def extract_all_features(features, df):
+
     # Data frame for collecting the features
     df_features = pd.DataFrame()
    
     for feature in features:
         # Calculate value of feature
-        df_features[feature.__name__] = grouped.apply(feature)
+        df_features[feature.__name__] = df.groupby(level = ['Driver', 'Trip']).apply(feature)
 
-    k_means = cluster.KMeans(n_clusters = 2, n_init = 2, n_jobs = 2)
-
-
-    for driver, trip in df.groupby(level = ['Driver', 'Trip']):
-        k_means.fit(df_features)
+    k_means = cluster.KMeans(n_clusters = 2, n_init = 1, n_jobs = 3)
+    k_means.fit(df_features)
 
     # Reuse data frame for saving probabilities
     # TODO: Maybe it's better to use the Multiindex directly
     # instead of accessing it via reset_index()
 
     df_features.reset_index(inplace = True)
+
     df_features['driver_trip'] = create_first_column(df_features)
     df_features['prob'] = 1 - k_means.labels_
-    
     return df_features.ix[:, ['driver_trip', 'prob']]
 
 def create_first_column(df):    
@@ -103,20 +97,28 @@ def calc_speed(trip_df):
     return s
 
 def main():
-    chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks"
+    chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks_big"
     # chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
     
     # Feature list
-    features = [trip_time, trip_air_distance, trip_air_distance_manhattan, calc_speed]
+    features = [
+        trip_time
+        , trip_air_distance
+        , calc_speed
+
+    ]
 
     chunks = listdir(chunk_path)
 
     final_list = []
    
     for chunk in chunks:
-        df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')    
-    
-        final_list.append(extract_all_features(features, df))
+        print(chunk)
+        df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
+
+        # Group data frame
+        for d, t in df.groupby(level = ['Driver']):
+            final_list.append(extract_all_features(features, t))
         
     final_df = pd.concat(final_list)
     create_submission_file(final_df)
