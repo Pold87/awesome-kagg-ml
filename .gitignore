@@ -4,3 +4,7 @@
 /chunks/
 /.idea/
 *~
+*.h5
+*.csv
+*.xml
+*.iml

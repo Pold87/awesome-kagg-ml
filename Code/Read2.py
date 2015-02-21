@@ -23,133 +23,72 @@ def create_submission_file(df):
     df.to_csv('submission-{}.csv'.format(file_num), index = False)
 
 
-def extract_all_features(features, df):
-
-    # Data frame for collecting the features
-    df_features = pd.DataFrame()
-
-    feature_names = []
-    for feature in features:
-        # Calculate value of feature
-        df_features[feature.__name__] = df.groupby(level = ['Driver', 'Trip']).apply(feature)
-        feature_names.append(feature.__name__)
-
-    df_features.reset_index(inplace = True)
-
-    return df_features
-
-
 def calc_prob(df_features):
 
+
     model = BaggingClassifier(base_estimator = RandomForestClassifier())
-    model.fit(df_features.ix[:, 2:], df_features.Driver)
+    model.fit(df_features.ix[:, 4:], df_features.Driver)
 
     df_submission = pd.DataFrame()
     df_submission['driver_trip'] = create_first_column(df_features)
+    # df_submission.reset_index(inplace = True)
 
-    probs_array = model.predict_proba(df_features.ix[:, 2:]) # Return array with the probability for every driver
+    probs_array = model.predict_proba(df_features.ix[:, 4:]) # Return array with the probability for every driver
+    probs_df = pd.DataFrame(probs_array)
 
-    drivers = listdir(r"C:\Users\User\PycharmProjects\awesome-kagg-ml\drivers")
+    #drivers = listdir(r"C:\Users\User\PycharmProjects\awesome-kagg-ml\drivers")
+    drivers = df_features.Driver.unique()
     drivers.sort()
-    drivers_dict = dict(zip(drivers, range(drivers)))
+    drivers_dict = dict(zip(drivers, range(len(drivers))))
 
     probs_list = []
-    for trip in df_submission.index:
-        driver = df_features.Driver[trip]
-        driver_pos_in_array = drivers_dict[str(driver)]
-        probs_list.append(probs_array[trip][driver_pos_in_array])
+    for index, row in df_features.iterrows():
+        driver = row['Driver']
+        driver_pos_in_array = drivers_dict[str(driver).rstrip()]
+
+        probs_list.append(probs_df.ix[index, driver_pos_in_array])
 
     df_submission['prob'] = probs_list
 
     return df_submission
 
 
-
 def create_first_column(df):
-    return df.ix[:, 0].apply(str) + "_" + df.ix[:, 1].apply(str)
+    return df.ix[:, 2].apply(str) + "_" + df.ix[:, 3].apply(str)
 
 ### Features (should work on trip level and return one single number)
 ## TODO: Should be placed in another file
 
-def trip_time(driver_df):
+
+def chunks(l, n):
+    """ Yield successive n-sized chunks from l.
     """
-    Calculate total trip time in seconds
-    """
-    return len(driver_df.index)
-
-
-def trip_air_distance(trip_df):
-    """"
-    Calculate air distance from starting point to end point
-    """
-
-    x = trip_df['x']
-    y = trip_df['y']
-
-    start = [[x[0], y[0]]]
-    finish = [[x[-1], y[-1]]]
-
-    dist = sp.spatial.distance.cdist(start, finish, 'euclidean')
-    return dist[0][0]
-
-
-def trip_air_distance_manhattan(trip_df):
-    """"
-    Calculate air distance from starting point to end point
-    """
-
-    x = trip_df['x']
-    y = trip_df['y']
-
-    start = [[x[0], y[0]]]
-    finish = [[x[-1], y[-1]]]
-
-    dist = sp.spatial.distance.cdist(start, finish, 'minkowski', 1)
-    return dist[0][0]
-
-def calc_speed(trip_df):
-    """
-    Calculate speed quantiles
-    """
-    # TODO: Think about that again
-    diff1 = np.diff(trip_df.x[1:]) ** 2
-    diff2 = np.diff(trip_df.y[1:]) ** 2
-    s = np.sqrt(diff1 + diff2).mean()
-    return s
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
 
 def main():
-    chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks_big"
-    # chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
+    # chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks_big"
+    chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
 
-    # Feature list
-    features = [
-        trip_time
-        , trip_air_distance
-        , calc_speed
+    # feature_df = pd.read_hdf(r"C:\Users\User\PycharmProjects\awesome-kagg-ml\Code\feature_df.h5", key = 'table')
+    feature_df = pd.read_hdf(r"/home/pold/Documents/Radboud/kaggle/Code/feature_df.h5", key = 'table')
+    feature_df.reset_index(inplace = True)
+    df_list = []
 
-    ]
+    # Split drivers in parts
+    # TODO: Insert random drivers from the entire data set (maybe)
+    chunked_drivers = chunks(feature_df.index, len(feature_df) // 700)
 
-    chunks = listdir(chunk_path)
+    for part in chunked_drivers:
 
-    feature_list = []
+        part_df = feature_df.ix[part]
 
-    for chunk in chunks:
-        print(chunk)
-        df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
+        part_df.reset_index(inplace = True)
 
-        # Group data frame
-        # for d, t in df.groupby(level = ['Driver']):
-        feature_list.append(extract_all_features(features, df))
+        submission_df = calc_prob(part_df)
+        df_list.append(submission_df)
 
-    feature_df = pd.concat(feature_list)
-
-    # HDF5
-    # feature_df.to_hdf('feature_df.h5','table')
-    # print("Written to", 'feature_df.h5')
-
-    # df = pd.read_hdf(r"C:\Users\User\PycharmProjects\awesome-kagg-ml\Code\feature_df.h5", key = 'table')
-
-    submission_df = calc_prob(feature_df)
+    submission_df = pd.concat(df_list)
     create_submission_file(submission_df)
 
 
