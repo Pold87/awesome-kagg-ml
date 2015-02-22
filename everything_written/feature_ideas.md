@@ -48,6 +48,8 @@ x,y - thanks to rotation and trimming uninformative
 
 16. abs(angle) correltaion to find return trips?
 
+17. ratio acceleration/deceleration
+
 ## thing that would be nice/ fourth order features
 
 1. being able to infer if trip was at day or at night (no idea how to reliably do that)
