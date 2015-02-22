@@ -8,8 +8,9 @@ class Features:
     def __init__(self, df, features):
         self.df = df
         self.features = features
-        self.df_grouped = df.groupby(level = ['Driver', 'Trip'])
-        self.euclidean_distances = self.euclidean_helper(self.df_grouped)
+        self.driver = df.index.get_level_values('Driver')[0]
+        self.trip = df.index.get_level_values('Trip')[0]
+        self.euclidean_distances = self.euclidean_helper(df)
         self.x_start = df['x'][0]
         self.y_start = df['y'][0]
         self.y_start = df['y'][0]
@@ -21,8 +22,8 @@ class Features:
         Calculate euclidean distance
         """
         # TODO: Think about that again
-        diff1 = np.diff(self.df.x[1:]) ** 2
-        diff2 = np.diff(self.df.y[1:]) ** 2
+        diff1 = np.diff(self.df.x[2:]) ** 2
+        diff2 = np.diff(self.df.y[2:]) ** 2
         return np.sqrt(diff1 + diff2)
 
     def trip_time(self, df):
@@ -83,15 +84,15 @@ class Features:
     def extract_all_features(self):
 
         # Data frame for collecting the features
-        df_features = pd.DataFrame()
-        feature_names = []
+        series_features = pd.Series()
+        series_features['Driver'] = self.driver
+        series_features['Trip'] = self.trip
 
         for feature in self.features:
             feature_method = getattr(self, feature)
             # Calculate value of feature
-            df_features[feature] = self.df_grouped.apply(feature_method)
-            feature_names.append(feature)
+            series_features[feature] = feature_method(self.df)
 
-        df_features.reset_index(inplace = True)
-        return df_features
+
+        return series_features
 

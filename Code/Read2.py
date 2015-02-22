@@ -68,10 +68,23 @@ def chunks(l, n):
 
 def main():
     # chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks_big"
-    chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
+    # chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
+
+
+    features_path = r"/home/pold/Documents/Radboud/kaggle/features"
+
+
+    features_files = listdir(features_path)
+
+    features_df_list = [pd.read_hdf(path.join(features_path, f), key = 'table') for f in features_files]
+
+
+    feature_df = pd.concat(features_df_list)
 
     # feature_df = pd.read_hdf(r"C:\Users\User\PycharmProjects\awesome-kagg-ml\Code\feature_df.h5", key = 'table')
-    feature_df = pd.read_hdf(r"/home/pold/Documents/Radboud/kaggle/Code/feature_df.h5", key = 'table')
+
+
+    #feature_df = pd.read_hdf(r"/home/pold/Documents/Radboud/kaggle/Code/feature_df.h5", key = 'table')
     feature_df.reset_index(inplace = True)
     df_list = []
 
