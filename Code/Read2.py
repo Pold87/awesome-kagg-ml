@@ -1,12 +1,14 @@
 import pandas as pd
 import numpy as np
 from os import path, listdir
+from sklearn import svm
+from sklearn import linear_model
 import scipy as sp
 from sklearn import cluster
 from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.datasets.samples_generator import make_blobs
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier
 
 
 def create_submission_file(df):
@@ -26,7 +28,13 @@ def create_submission_file(df):
 def calc_prob(df_features):
 
 
-    model = BaggingClassifier(base_estimator = RandomForestClassifier())
+    #model = BaggingClassifier(base_estimator = RandomForestClassifier())
+    model = BaggingClassifier(base_estimator = ExtraTreesClassifier())
+    # model = BaggingClassifier(base_estimator = svm.SVC(gamma=2, C=1))
+    # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
+    # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
+    # model = BaggingClassifier(base_estimator = AdaBoostClassifier())E
+    # model = RandomForestClassifier()
     model.fit(df_features.ix[:, 4:], df_features.Driver)
 
     df_submission = pd.DataFrame()
@@ -71,8 +79,8 @@ def main():
     # chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
 
 
-    features_path = r"/home/pold/Documents/Radboud/kaggle/features"
-
+    # features_path = r"/home/pold/Documents/Radboud/kaggle/features"
+    features_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\features"
 
     features_files = listdir(features_path)
 
@@ -88,9 +96,12 @@ def main():
     feature_df.reset_index(inplace = True)
     df_list = []
 
+
+    nr_of_drivers_for_comparison = 5
+
     # Split drivers in parts
     # TODO: Insert random drivers from the entire data set (maybe)
-    chunked_drivers = chunks(feature_df.index, len(feature_df) // 700)
+    chunked_drivers = chunks(feature_df.index, 200 * nr_of_drivers_for_comparison)
 
     for part in chunked_drivers:
 

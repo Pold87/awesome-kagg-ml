@@ -12,8 +12,8 @@ def diff(a, b):
 
 
 def main():
-    # chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks_big"
-    chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
+    chunk_path = r"C:\Users\User\PycharmProjects\awesome-kagg-ml\chunks_big"
+    # chunk_path = r"/home/pold/Documents/Radboud/kaggle/chunks"
 
     # Feature list
     features = [
@@ -25,6 +25,7 @@ def main():
         , 'max_speed'
         , 'average_acceleration'
         , 'average_deceleration'
+        , 'average_radial_acceleration'
     ]
 
     chunks = listdir(chunk_path)
@@ -34,7 +35,7 @@ def main():
 
         print(chunk)
         i += 1
-        file_name = "feature_df_test_{}.h5".format(i)
+        file_name = "feature_df_test__radial{}.h5".format(i)
         df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
         # Extract one trip at a time and not all trip

@@ -1,16 +1,17 @@
 import pandas as pd
 import numpy as np
 from scipy import spatial
+import math
 
 
 class Features:
-
     def __init__(self, df, features):
         self.df = df
         self.features = features
         self.driver = df.index.get_level_values('Driver')[0]
         self.trip = df.index.get_level_values('Trip')[0]
         self.euclidean_distances = self.euclidean_helper(df)
+        self.euclidean_distances_2 = self.euclidean_helper_2(df)
         self.x_start = df['x'][0]
         self.y_start = df['y'][0]
         self.y_start = df['y'][0]
@@ -21,9 +22,19 @@ class Features:
         """
         Calculate euclidean distance
         """
+
         # TODO: Think about that again
-        diff1 = np.diff(self.df.x[2:]) ** 2
-        diff2 = np.diff(self.df.y[2:]) ** 2
+        diff1 = np.diff(self.df.x) ** 2
+        diff2 = np.diff(self.df.y) ** 2
+        return np.sqrt(diff1 + diff2)
+
+    def euclidean_helper_2(self, df):
+        """
+        Calculate euclidean distance between point t and point t+2
+        """
+        # TODO: Think about that again
+        diff1 = np.subtract(self.df.x[3:], self.df.x[1:-2]) ** 2
+        diff2 = np.subtract(self.df.y[3:], self.df.y[1:-2]) ** 2
         return np.sqrt(diff1 + diff2)
 
     def trip_time(self, df):
@@ -82,7 +93,6 @@ class Features:
         return self.euclidean_distances.max()
 
     def extract_all_features(self):
-
         # Data frame for collecting the features
         series_features = pd.Series()
         series_features['Driver'] = self.driver
@@ -92,7 +102,6 @@ class Features:
             feature_method = getattr(self, feature)
             # Calculate value of feature
             series_features[feature] = feature_method(self.df)
-
 
         return series_features
 
