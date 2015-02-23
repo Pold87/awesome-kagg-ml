@@ -44,6 +44,11 @@ x,y - thanks to rotation and trimming uninformative
 
 14. "AUC", not really, but area in the "slope" that connects start and endpoints
 
+15. correlation between angles can help to find same trips
+
+16. abs(angle) correltaion to find return trips?
+
+17. ratio acceleration/deceleration
 
 ## thing that would be nice/ fourth order features
 
