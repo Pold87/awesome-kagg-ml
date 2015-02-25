@@ -105,7 +105,7 @@ class Features:
         return np.sum(df.angle)
         
     def angle_mean(self,df):
-        return np.mean(angle)
+        return np.mean(df.angle)
         
 
     def extract_all_features(self):
