@@ -14,7 +14,10 @@ def main():
                 , 'max_speed'
                 , 'average_acceleration'
                 , 'average_deceleration'
-                , 'average_radial_acceleration']
+                , 'average_radial_acceleration'
+                , 'angle'
+                , 'mean_angle'
+                , 'angle_sum']
 
     # Chunks (containing parts of the mega df)
     chunk_path = path.join("..", "chunks")

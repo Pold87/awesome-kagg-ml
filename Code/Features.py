@@ -101,6 +101,12 @@ class Features:
         diff2 = np.diff(self.df.y)
         return np.arctan(diff1/(diff2 + (1/maxint)))*180 / np.pi
         
+    def angle_sum(self,df):
+        return np.sum(df.angle)
+        
+    def angle_mean(self,df):
+        return np.mean(angle)
+        
 
     def extract_all_features(self):
         # Data frame for collecting the features
