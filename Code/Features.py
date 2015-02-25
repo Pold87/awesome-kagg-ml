@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy import spatial
 import math
+from sys import maxint # only for angle, so far.
 
 
 class Features:
@@ -91,6 +92,15 @@ class Features:
     def max_speed(self, df):
         # TODO: Remove outliers
         return self.euclidean_distances.max()
+        
+    
+    def angle(self,df):
+        #TODO: check if maxint is best solution. needed: number closest to zero
+        # to avoid nans
+        diff1 = np.diff(self.df.x) 
+        diff2 = np.diff(self.df.y)
+        return np.arctan(diff1/(diff2 + (1/maxint)))*180 / np.pi
+        
 
     def extract_all_features(self):
         # Data frame for collecting the features
@@ -104,4 +114,5 @@ class Features:
             series_features[feature] = feature_method(self.df)
 
         return series_features
+        
 
