@@ -8,24 +8,32 @@ def main():
     # Feature list
     features = ['trip_time'
                 , 'trip_air_distance'
-                , 'trip_air_distance_manhattan'
                 , 'trip_distance'
-                , 'average_speed'
+                , 'median_speed'
                 , 'max_speed'
-                , 'average_acceleration'
-                , 'average_deceleration'
-                , 'average_radial_acceleration'
-                , 'angle'
-                , 'mean_angle'
-                , 'angle_sum']
+                , 'max_acceleration'
+                , 'max_deceleration'
+                , 'median_acceleration'
+                , 'median_deceleration'
+                , 'sd_acceleration'
+                , 'df_deceleration'
+                , 'sd_speed'
+                , 'minimum_deceleration'
+                , 'acceleration_time'
+                , 'deceleration_time'
+                , 'angle_sum'
+                , 'angle_mean'
+
+    ]
 
     # Chunks (containing parts of the mega df)
-    chunk_path = path.join("..", "chunks")
+    chunk_path = path.join("..", "chunks_big")
     chunks = listdir(chunk_path)
 
-    for chunk, i in enumerate(chunks):
+    for i, chunk in enumerate(chunks):
+        print(chunk)
 
-        file_name = "feature_df_{}.h5".format(i)
+        file_name = "feature_df_sd_{}.h5".format(i)
         df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
         features_for_this_chunk = []
@@ -40,7 +48,7 @@ def main():
         df_features_for_this_chunk = df_features_for_this_chunk.from_dict(features_for_this_chunk)
 
         # Write data frames containing the features to HDF5 file
-        df_features_for_this_chunk.to_hdf(file_name,'table')
+        df_features_for_this_chunk.to_hdf(path.join('..', 'features', file_name), 'table')
         print("Written to", file_name)
 
 

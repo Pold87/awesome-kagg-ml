@@ -38,7 +38,7 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
     # model = RandomForestClassifier()
-    model = BaggingClassifier(base_estimator = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=1, random_state=0))
+    model = BaggingClassifier(base_estimator = RandomForestClassifier())
     feature_columns = df_train.iloc[:, 4:]
 
     # Train the classifier
