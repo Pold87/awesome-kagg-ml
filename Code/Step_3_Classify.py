@@ -47,16 +47,9 @@ def calc_prob(df_features_driver, df_features_other):
 
     df_submission['driver_trip'] = create_first_column(df_features_driver)
 
-    probs_array = model.predict_proba(feature_columns) # Return array with the probability for every driver
+    probs_array = model.predict_proba(feature_columns[:200]) # Return array with the probability for every driver
     probs_df = pd.DataFrame(probs_array)
-
-    probs_list = []
-    for x in range(200):
-        # Column 1 should contain the driver of interest
-        probs_list.append(probs_df.ix[x, 1])
-
-    df_submission['prob'] = probs_list
-
+    df_submission['prob'] = probs_df.iloc[:, 1]
     return df_submission
 
 def create_first_column(df):
