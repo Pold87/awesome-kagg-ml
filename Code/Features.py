@@ -17,10 +17,18 @@ class Features:
         self.x_finish = df['x'][-1]
         self.y_finish = df['y'][-1]
         self.euclidean_distances = self.euclidean_helper()
+        self.total_time = self.trip_time()
         self.acc_and_dec = np.diff(self.euclidean_distances)
         self.accelerations = self.acc_and_dec[self.acc_and_dec > 0]
         self.decelerations = self.acc_and_dec[self.acc_and_dec < 0]
+        self.city_mask = (self.euclidean_distances > 5) & (self.euclidean_distances < 45)
+        self.city_speeds = self.euclidean_distances[self.city_mask]
+        self.rural_mask = (self.euclidean_distances > 40) & (self.euclidean_distances < 60)
+        self.rural_speeds = self.euclidean_distances[self.rural_mask]
+        self.freeway_mask = (self.euclidean_distances > 55) & (self.euclidean_distances < 120)
+        self.freeway_speeds = self.euclidean_distances[self.freeway_mask]
         self.angles = self.angles_helper()
+        self.stop_time = self.total_stop_time()
 
     #### Helpers
 
@@ -28,7 +36,8 @@ class Features:
         """
         Calculate euclidean distance
         """
-        return np.sqrt(self.xDiff ** 2 + self.yDiff ** 2)
+        # Calculate miles per hour (I assume it's somewhere in the US)
+        return np.sqrt(self.xDiff ** 2 + self.yDiff ** 2) * 2.2369
 
     def euclidean_helper_2(self):
         """
@@ -92,6 +101,7 @@ class Features:
         return acc
 
     def max_speed(self):
+        # Could be done differently now
         return np.percentile(self.euclidean_distances, 90)
 
     def max_acceleration(self):
@@ -119,11 +129,65 @@ class Features:
         return np.percentile(self.decelerations, 10)
 
     def acceleration_time(self):
-        return len(self.accelerations) / self.trip_time()
+        return len(self.accelerations) / self.total_time
 
     def deceleration_time(self):
-        return len(self.decelerations) / self.trip_time()
+        return len(self.decelerations) / self.total_time
 
+    def zero_or_mean(self, speeds):
+
+        if len(speeds) == 0:
+            return 0
+        else:
+            return np.mean(speeds)
+
+    def mean_speed_city(self):
+
+        return self.zero_or_mean(self.city_speeds)
+
+    def mean_speed_rural(self):
+
+        return self.zero_or_mean(self.rural_speeds)
+
+    def mean_speed_freeway(self):
+
+        return self.zero_or_mean(self.freeway_speeds)
+
+    def zero_or_std(self, speeds):
+
+        if len(speeds) == 0:
+            return 0
+        else:
+            return np.std(speeds)
+
+    def mean_speed_sd_city(self):
+
+        return self.zero_or_std(self.city_speeds)
+
+    def mean_speed_sd_rural(self):
+        return self.zero_or_std(self.rural_speeds)
+
+    def mean_speed_sd_freeway(self):
+        return self.zero_or_std(self.freeway_speeds)
+
+    def city_time_ratio(self):
+        return len(self.city_speeds) / self.total_time
+
+    def rural_time_ratio(self):
+        return len(self.rural_speeds) / self.total_time
+
+    def freeway_time_ratio(self):
+
+        time = self.freeway_speeds
+
+        return len(time) / self.total_time
+
+    def total_stop_time(self):
+        mask = self.euclidean_distances < 5
+        return len(self.euclidean_distances[mask])
+
+    def stop_time_ratio(self):
+        return self.stop_time / self.total_time
 
     def extract_all_features(self):
         # Data frame for collecting the features

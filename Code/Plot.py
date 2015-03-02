@@ -14,8 +14,8 @@ for index, trip in dfs.groupby(level = ['Driver', 'Trip']):
     features = feat.Features(trip, [])
     
     # In km/h
-    velocities = features.euclidean_helper() * 3.6
+    velocities = features.euclidean_helper() * 2.2369
     
-    plt.hist(velocities, bins = np.arange(0, 120, 10))
+    plt.hist(velocities, bins = np.arange(0, 100, 5))
     plt.show()
 

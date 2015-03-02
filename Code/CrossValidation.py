@@ -3,18 +3,8 @@ import numpy as np
 from os import path, listdir
 import matplotlib.pyplot as plt
 import time
-import Helpers
 import AUC
-from sklearn import svm
-from sklearn import linear_model
-import scipy as sp
-from sklearn import cluster
-from sklearn.cluster import DBSCAN
-from sklearn import metrics
-from sklearn.datasets.samples_generator import make_blobs
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier
-
-from multiprocessing import Pool
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier
 
 def crossvalidation(df_features_driver, df_features_other, nfold):
 
@@ -32,14 +22,7 @@ def crossvalidation(df_features_driver, df_features_other, nfold):
         df_test = df_features_driver.iloc[ind_test].append(df_features_other.iloc[ind_test])
         df_test.reset_index(inplace = True)
         df_test.Driver = df_test.Driver.astype(int)        
-        
-        # So far, the best result was achieved by using a RandomForestClassifier with Bagging
-        # model = BaggingClassifier(base_estimator = ExtraTreesClassifier())
-        # model = BaggingClassifier(base_estimator = svm.SVC(gamma=2, C=1))
-        # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
-        # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
-        # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
-        # model = RandomForestClassifier()
+
         model = BaggingClassifier(base_estimator = RandomForestClassifier(n_estimators=10, max_depth=None, min_samples_split=1, random_state=0))
         feature_columns_train= df_train.iloc[:, 4:]
         feature_columns_test= df_test.iloc[:, 4:]

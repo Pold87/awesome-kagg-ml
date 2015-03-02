@@ -73,13 +73,11 @@ def main():
     feature_df.reset_index(inplace = True)
     df_list = []
 
-    for _, driver_df in feature_df.groupby('Driver'):
+    for i, (_, driver_df) in enumerate(feature_df.groupby('Driver')):
 
-        # Get 200 other trips
-        other_trips = np.random.randint(0, len(feature_df) - 1, 400)
-
+        indeces = np.append(np.arange(i * 200), np.arange((i+1) * 200, len(feature_df)))
+        other_trips = indeces[np.random.randint(0, len(indeces) - 1, 200)]
         others = feature_df.iloc[other_trips]
-
         others.Driver = int(0)
 
         submission_df = calc_prob(driver_df, others)
