@@ -9,7 +9,24 @@ from sklearn import cluster
 from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.datasets.samples_generator import make_blobs
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier
+from sklearn.base import ClassifierMixin, BaseEstimator
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
+
+
+class EnsembleClassifier(BaseEstimator, ClassifierMixin):
+    def __init__(self, classifiers=None):
+        self.classifiers = classifiers
+        self.predictions_ = list()
+
+    def fit(self, x, y):
+        for classifier in self.classifiers:
+            classifier.fit(x, y)
+
+    def predict_proba(self, x):
+        for classifier in self.classifiers:
+            self.predictions_.append(classifier.predict_proba(x))
+            m = np.mean(self.predictions_, axis=0)
+        return m
 
 def create_submission_file(df):
     """
@@ -38,7 +55,10 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
     # model = RandomForestClassifier()
-    model = BaggingClassifier(base_estimator = RandomForestClassifier())
+    # model = BaggingClassifier(base_estimator = [RandomForestClassifier(), linear_model.LogisticRegression()])
+    model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
+                                GradientBoostingClassifier])
+    # model = GradientBoostingClassifier()
     feature_columns = df_train.iloc[:, 4:]
 
     # Train the classifier
@@ -49,7 +69,9 @@ def calc_prob(df_features_driver, df_features_other):
 
     probs_array = model.predict_proba(feature_columns[:200]) # Return array with the probability for every driver
     probs_df = pd.DataFrame(probs_array)
-    df_submission['prob'] = probs_df.iloc[:, 1]
+
+    df_submission['prob'] = np.array(probs_df.iloc[:, 1])
+
     return df_submission
 
 def create_first_column(df):
