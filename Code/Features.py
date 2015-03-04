@@ -115,6 +115,12 @@ class Features:
         
     def angle_mean(self):
         return self.angles.mean()
+    
+    def angle_acceeleration_mean(self):
+        return np.mean(self.angles_helper/self.accelerations)
+        
+    def angle_speed_mean(self):
+        return np.mean(self.angles_helper/self.euclidean_distances)
 
     def sd_acceleration(self):
         return np.std(self.accelerations)

@@ -34,6 +34,8 @@ def main():
                 , 'rural_time_ratio'
                 , 'freeway_time_ratio'
                 , 'stop_time_ratio'
+                , 'angle_acceeleration_mean'
+                , 'angle_speed_mean'
     ]
 
     # Chunks (containing parts of the mega df)
