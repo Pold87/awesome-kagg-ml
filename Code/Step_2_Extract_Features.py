@@ -36,6 +36,9 @@ def main():
                 , 'stop_time_ratio'
                 , 'angle_acceeleration_mean'
                 , 'angle_speed_mean'
+                , 'pauses_length_mean'
+                , 'pauses_length_mean_rural'
+                , 'pauses_length_mean_city' # stopngo
     ]
 
     # Chunks (containing parts of the mega df)

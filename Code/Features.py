@@ -29,6 +29,7 @@ class Features:
         self.freeway_speeds = self.euclidean_distances[self.freeway_mask]
         self.angles = self.angles_helper()
         self.stop_time = self.total_stop_time()
+        self.pauses = self.pauses_helper()
 
     #### Helpers
 
@@ -50,6 +51,12 @@ class Features:
 
     def angles_helper(self):
         return np.degrees(np.arctan2(np.diff(self.df.y), np.diff(self.df.x)))
+    
+    ###NEW
+    # not sure if this works
+    def pauses_helper(self):
+        """ create bool array that is true if car moves"""
+        return np.array(self.euclidean_distances > 0) 
 
     ### Features
 
@@ -116,11 +123,28 @@ class Features:
     def angle_mean(self):
         return self.angles.mean()
     
+    #####New
     def angle_acceeleration_mean(self):
         return np.mean(self.angles_helper/self.accelerations)
-        
+    ####New
     def angle_speed_mean(self):
         return np.mean(self.angles_helper/self.euclidean_distances)
+        
+    ####NEW 
+    # I think it works, but I haven't tested it.
+    def pauses_length_mean(self):
+        return np.mean(self.pauses) #self.pauses.mean()
+    
+    ####NEW
+    # works on toy problems, under the assumption that city_mask is a numpy 
+    #bool array
+    def pauses_length_mean_rural(self):
+        return np.mean(self.pauses[-self.city_mask])
+    
+    #### NEW
+    def pauses_length_mean_city(self):
+        return np.mean(self.pauses[self.city_mask])
+       
 
     def sd_acceleration(self):
         return np.std(self.accelerations)
