@@ -54,11 +54,12 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
-    # model = RandomForestClassifier()
+    model = RandomForestClassifier(150)
     # model = BaggingClassifier(base_estimator = [RandomForestClassifier(), linear_model.LogisticRegression()])
-    model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
-                                GradientBoostingClassifier])
-    # model = GradientBoostingClassifier()
+    # model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
+    #                             GradientBoostingClassifier])
+    # model = GradientBoostingClassifier() 
+    
     feature_columns = df_train.iloc[:, 4:]
 
     # Train the classifier
@@ -86,12 +87,24 @@ def create_first_column(df):
 
 def main():
 
-    features_path = path.join('..', 'features')
-    features_files = listdir(features_path)
+    features_path_1 = path.join('..', 'features')
+    features_files_1 = listdir(features_path_1)
+    
+    #features_path_2 = path.join('..', 'features_2')
+    #features_files_2 = listdir(features_path_2)
 
     # Get data frame that contains each trip with its features
-    features_df_list = [pd.read_hdf(path.join(features_path, f), key = 'table') for f in features_files]
-    feature_df = pd.concat(features_df_list)
+    features_df_list_1 = [pd.read_hdf(path.join(features_path_1, f), key = 'table') for f in features_files_1]
+    feature_df_1 = pd.concat(features_df_list_1)
+    
+    #features_df_list_2 = [pd.read_hdf(path.join(features_path_2, f), key = 'table') for f in features_files_2]
+    #feature_df_2 = pd.concat(features_df_list_2)  
+    #feature_df_2x = feature_df_2[['Driver', 'Trip', 'mean_speed_times_acceleration', 'pauses_length_mean']]    
+    
+    # feature_df = pd.merge(feature_df_1, feature_df_2x, on=['Driver', 'Trip'], sort = False)
+    
+    feature_df = feature_df_1    
+    
     feature_df.reset_index(inplace = True)
     df_list = []
 

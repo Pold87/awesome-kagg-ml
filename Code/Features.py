@@ -124,11 +124,11 @@ class Features:
         return self.angles.mean()
     
     #####New
-    def angle_acceeleration_mean(self):
-        return np.mean(self.angles_helper/self.accelerations)
+    def angle_acceleration_mean(self):
+        return np.mean(self.angles[:-1] / self.acc_and_dec)
     ####New
     def angle_speed_mean(self):
-        return np.mean(self.angles_helper/self.euclidean_distances)
+        return np.mean(self.angles /self.euclidean_distances)
         
     ####NEW 
     # I think it works, but I haven't tested it.
@@ -144,7 +144,10 @@ class Features:
     #### NEW
     def pauses_length_mean_city(self):
         return np.mean(self.pauses[self.city_mask])
-       
+
+    #### ALSO NEW
+    def mean_speed_times_acceleration(self):
+        return np.mean(self.euclidean_distances[:-1] * self.acc_and_dec)
 
     def sd_acceleration(self):
         return np.std(self.accelerations)

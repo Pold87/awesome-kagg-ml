@@ -6,39 +6,40 @@ import Features as feat
 def main():
 
     # Feature list
-    features = ['trip_time'
-                , 'trip_air_distance'
-                , 'trip_distance'
+    features = [#'trip_time'
+                #, 'trip_air_distance'
+                #, 'trip_distance'
                #  , 'median_speed'
-                , 'max_speed'
-                , 'max_acceleration'
-                , 'max_deceleration'
-                , 'median_acceleration'
-                , 'median_deceleration'
-                , 'sd_acceleration'
-                , 'df_deceleration'
+                #, 'max_speed'
+                #, 'max_acceleration'
+                #, 'max_deceleration'
+                #, 'median_acceleration'
+                #, 'median_deceleration'
+                #, 'sd_acceleration'
+                #, 'df_deceleration'
                 # , 'sd_speed'
-                , 'minimum_deceleration'
-                , 'acceleration_time'
-                , 'deceleration_time'
+                #, 'minimum_deceleration'
+                #, 'acceleration_time'
+                #, 'deceleration_time'
                # , 'angle_sum'
                # , 'angle_mean'
-                , 'mean_speed_city'
-                , 'mean_speed_rural'
-                , 'mean_speed_freeway'
-                , 'mean_speed_sd_city'
-                , 'mean_speed_sd_rural'
-                , 'mean_speed_sd_freeway'
-                , 'total_stop_time'
-                , 'city_time_ratio'
-                , 'rural_time_ratio'
-                , 'freeway_time_ratio'
-                , 'stop_time_ratio'
-                , 'angle_acceeleration_mean'
+                #, 'mean_speed_city'
+                #, 'mean_speed_rural'
+                #, 'mean_speed_freeway'
+                #, 'mean_speed_sd_city'
+                #, 'mean_speed_sd_rural'
+                #, 'mean_speed_sd_freeway'
+                #, 'total_stop_time'
+                #, 'city_time_ratio'
+                #, 'rural_time_ratio'
+                #, 'freeway_time_ratio'
+                #, 'stop_time_ratio'
+                'angle_acceleration_mean'
                 , 'angle_speed_mean'
                 , 'pauses_length_mean'
                 , 'pauses_length_mean_rural'
                 , 'pauses_length_mean_city' # stopngo
+                , 'mean_speed_times_acceleration'
     ]
 
     # Chunks (containing parts of the mega df)
@@ -48,7 +49,7 @@ def main():
     for i, chunk in enumerate(chunks):
         print(chunk)
 
-        file_name = "feature_df_city_accel_{}.h5".format(i)
+        file_name = "feature_df_city_accel_addon_{}.h5".format(i)
         df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
         features_for_this_chunk = []
