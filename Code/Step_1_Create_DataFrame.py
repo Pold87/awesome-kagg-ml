@@ -72,7 +72,7 @@ def read_chunk(chunk_num, drivers_path, drivers):
     filename = 'dataframe_' + str(chunk_num) + '.h5'
 
     # Save dataframe in HDF5
-    df_all_drivers.to_hdf(path.join('chunks', filename), 'table')
+    df_all_drivers.to_hdf(path.join(filename),'table')#'chunks', filename), 'table')
 
     print("Written to", filename)
 
@@ -97,6 +97,7 @@ def main():
 
     # All trips and drivers from Kaggle:
     drivers_path = path.join("..", "drivers")
+    drivers_path = r'G:\Win7_2015\Copy\Copy\Nijmegen\Normal\Master\MasterAI\Pracitcal_ML\Data\drivers'
     drivers = listdir(drivers_path)
     read_all_chunks(drivers_path, drivers, number_of_chunks)
 
