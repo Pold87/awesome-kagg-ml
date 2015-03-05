@@ -42,7 +42,7 @@ def main():
     ]
 
     # Chunks (containing parts of the mega df)
-    chunk_path = r'G:\Win7_2015\Copy\Copy\Nijmegen\Normal\Master\MasterAI\Pracitcal_ML\git\awesome-kagg-ml\chunks\chunks_big'# path.join("..", "chunks_big")
+    chunk_path = path.join("..", "chunks_big")
     chunks = listdir(chunk_path)
 
     for i, chunk in enumerate(chunks):

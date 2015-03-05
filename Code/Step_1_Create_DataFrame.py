@@ -97,7 +97,6 @@ def main():
 
     # All trips and drivers from Kaggle:
     drivers_path = path.join("..", "drivers")
-    drivers_path = r'G:\Win7_2015\Copy\Copy\Nijmegen\Normal\Master\MasterAI\Pracitcal_ML\Data\drivers'
     drivers = listdir(drivers_path)
     read_all_chunks(drivers_path, drivers, number_of_chunks)
 
