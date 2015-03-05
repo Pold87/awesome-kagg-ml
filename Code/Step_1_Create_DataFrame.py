@@ -72,7 +72,7 @@ def read_chunk(chunk_num, drivers_path, drivers):
     filename = 'dataframe_' + str(chunk_num) + '.h5'
 
     # Save dataframe in HDF5
-    df_all_drivers.to_hdf(path.join('chunks', filename), 'table')
+    df_all_drivers.to_hdf(path.join(filename),'table')#'chunks', filename), 'table')
 
     print("Written to", filename)
 

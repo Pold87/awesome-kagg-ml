@@ -27,7 +27,7 @@ class Features:
         self.rural_speeds = self.euclidean_distances[self.rural_mask]
         self.freeway_mask = (self.euclidean_distances > 55) & (self.euclidean_distances < 120)
         self.freeway_speeds = self.euclidean_distances[self.freeway_mask]
-        self.angles = self.angles_helper()
+        self.angles = np.array(self.angles_helper())
         self.stop_time = self.total_stop_time()
         self.pauses = self.pauses_helper()
 
@@ -51,6 +51,10 @@ class Features:
 
     def angles_helper(self):
         return np.degrees(np.arctan2(np.diff(self.df.y), np.diff(self.df.x)))
+        
+    ### NEW
+    def acceleration_mask(self):
+        return (self.acc_and_dec > 0)
     
     ###NEW
     # not sure if this works
@@ -124,11 +128,12 @@ class Features:
         return self.angles.mean()
     
     #####New
-    def angle_acceleration_mean(self):
-        return np.mean(self.angles[:-1] / self.acc_and_dec)
+    def angle_acceeleration_mean(self):
+        ##ToDo: match sizes of arrays
+        return np.mean(self.angles[self.acceleration_mask()]/self.accelerations)
     ####New
     def angle_speed_mean(self):
-        return np.mean(self.angles /self.euclidean_distances)
+        return np.mean(self.angles/self.euclidean_distances)
         
     ####NEW 
     # I think it works, but I haven't tested it.
@@ -139,15 +144,12 @@ class Features:
     # works on toy problems, under the assumption that city_mask is a numpy 
     #bool array
     def pauses_length_mean_rural(self):
-        return np.mean(self.pauses[-self.city_mask])
+        return self.zero_or_mean(self.pauses[-self.city_mask])
     
     #### NEW
     def pauses_length_mean_city(self):
-        return np.mean(self.pauses[self.city_mask])
-
-    #### ALSO NEW
-    def mean_speed_times_acceleration(self):
-        return np.mean(self.euclidean_distances[:-1] * self.acc_and_dec)
+        return self.zero_or_mean(self.pauses[self.city_mask])
+       
 
     def sd_acceleration(self):
         return np.std(self.accelerations)
