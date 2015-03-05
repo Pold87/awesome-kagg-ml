@@ -49,10 +49,10 @@ def read_chunk(chunk_num, drivers_path, drivers):
         driver_fullpath = path.join(drivers_path, driver)
 
         trips = listdir(driver_fullpath)
-    
+
         for trip in trips:
             trip_num = path.splitext(trip)[0]
-            
+
             df = pd.read_csv(path.join(driver_fullpath, trip))
 
             # Multi-indices for driver and Trip)
@@ -66,11 +66,11 @@ def read_chunk(chunk_num, drivers_path, drivers):
         # Create dataframe from dataframe list
         df_one_driver = pd.concat(list_one_driver_all_trips)
         mega_df.append(df_one_driver)
-    
+
     df_all_drivers = pd.concat(mega_df)
 
     filename = 'dataframe_' + str(chunk_num) + '.h5'
-    
+
     # Save dataframe in HDF5
     df_all_drivers.to_hdf(path.join('chunks', filename), 'table')
 
@@ -83,7 +83,7 @@ def read_all_chunks(drivers_path, drivers, number_of_chunks):
     to HDF5 files.
     """
     # Split list into parts (depending on memory capacity)
-    chunked_drivers = chunks(drivers, len(drivers) // number_of_chunks)
+    chunked_drivers = Helpers.chunks(drivers, len(drivers) // number_of_chunks)
 
     for chunk_num, drivers in enumerate(chunked_drivers):
 
@@ -94,7 +94,7 @@ def main():
 
     # Number of chunks (depends on memory capacities)
     number_of_chunks = 16
-    
+
     # All trips and drivers from Kaggle:
     drivers_path = path.join("..", "drivers")
     drivers = listdir(drivers_path)
