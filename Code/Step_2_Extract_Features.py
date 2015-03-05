@@ -43,7 +43,7 @@ def main():
     for i, chunk in enumerate(chunks):
         print(chunk)
 
-        file_name = "feature_df_city_{}.h5".format(i)
+        file_name = "feature_df_city_accel_{}.h5".format(i)
         df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
         features_for_this_chunk = []
