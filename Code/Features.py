@@ -138,7 +138,7 @@ class Features:
     ####NEW 
     # I think it works, but I haven't tested it.
     def pauses_length_mean(self):
-        return np.mean(self.pauses) #self.pauses.mean()
+        return self.zero_or_mean(self.pauses) #self.pauses.mean()
     
     ####NEW
     # works on toy problems, under the assumption that city_mask is a numpy 
