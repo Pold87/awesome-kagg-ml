@@ -44,12 +44,13 @@ def main():
 
     # Chunks (containing parts of the mega df)
     chunk_path = path.join("..", "chunks_big")
-    chunks = listdir(chunk_path)
+    # prepend zero with rename 's/.*\_(\d{1})\..*$/dataframe_0$1.h5/' *.h5
+    chunks = sorted(listdir(chunk_path))
 
     for i, chunk in enumerate(chunks):
         print(chunk)
 
-        file_name = "feature_df_city_accel_addon_{}.h5".format(i)
+        file_name = "feature_df_city_accel_addon_" + str(i).zfill(2) + ".h5"
         df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
         features_for_this_chunk = []
