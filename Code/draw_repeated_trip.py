@@ -14,7 +14,7 @@
 import os
 import numpy as np
 import pandas as pd
-from sklearn.metrics.pairwise import paired_distances
+from sklearn.metrics.pairwise import paired_distances, paired_euclidean_distances
 from random import random,randrange
 import matplotlib.pyplot as plt
 from math import pi
@@ -91,13 +91,18 @@ class draw_repeated_trip:
             tx = np.pad(tx, ((0, -gap), (0, 0)), 'edge')
         else:
             pass
+
+
         # use any distance metric that you would like
         return paired_distances(tx, ty, metric='l2').sum()
 
     def sametrip(self, tx, ty):
         mm = int(tx.shape[0]*self.threshold)
         txx = np.vstack((tx[mm:, :], tx[-mm:, :]))
+
+
         dd = self.getdd(tx, txx)
+        print(dd)
         return self.getdd(tx, ty) <= dd
 
     def check_trips(self, tripcounter, tripname):
@@ -142,4 +147,4 @@ if __name__ == "__main__":
                                df_submission = pd.read_csv('submission-6.csv'))
         dd.draw()
 
-    dd.df_submission.to_csv('submission_processed_6.csv', index = False)
+    dd.df_submission.to_csv('submission_processedi_6.csv', index = False)

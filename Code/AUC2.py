@@ -8,7 +8,7 @@ def AUC(probs_list):
 
     print(probs_list)
     
-    cumulative = 0;
+    counter = 0;
     y = 0
     num_pos = probs_list[probs_list==('1')].size
     num_neg = len(probs_list) - num_pos
@@ -18,7 +18,6 @@ def AUC(probs_list):
     for x in range(len(probs_list)):
         if (probs_list[-1-x][0]=='1'):
             y = y + delta_y
-        else:
-            cumulative = cumulative + (y * delta_x)
+            counter += 1
     
     return cumulative  

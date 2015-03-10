@@ -10,7 +10,7 @@ from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.base import ClassifierMixin, BaseEstimator
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 
 
 class EnsembleClassifier(BaseEstimator, ClassifierMixin):
@@ -54,12 +54,11 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
-    model = RandomForestClassifier(500, n_jobs=-1, criterion='entropy', max_features='log2')
+    #model = RandomForestClassifier(200)
     # model = BaggingClassifier(base_estimator = [RandomForestClassifier(), linear_model.LogisticRegression()])
     # model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
     #                             GradientBoostingClassifier])
-    # model = GradientBoostingClassifier(n_estimators = 500, learning_rate = 0.05, random_state=0, subsample = 0.85)
-    # model = GradientBoostingRegressor(n_estimators = 1000)
+    model = GradientBoostingClassifier(n_estimators = 10000)
     # model = ExtraTreesClassifier(500, criterion='entropy')
 
     feature_columns = df_train.iloc[:, 4:]
@@ -90,27 +89,28 @@ def create_first_column(df):
 def main():
 
     features_path_1 = path.join('..', 'features')
-    features_files_1 = sorted(listdir(features_path_1))
-
+    features_files_1 = listdir(features_path_1)
+    
     #features_path_2 = path.join('..', 'features_2')
     #features_files_2 = listdir(features_path_2)
 
     # Get data frame that contains each trip with its features
     features_df_list_1 = [pd.read_hdf(path.join(features_path_1, f), key = 'table') for f in features_files_1]
     feature_df_1 = pd.concat(features_df_list_1)
-
+    
     #features_df_list_2 = [pd.read_hdf(path.join(features_path_2, f), key = 'table') for f in features_files_2]
-    #feature_df_2 = pd.concat(features_df_list_2)
-    #feature_df_2x = feature_df_2[['Driver', 'Trip', 'mean_speed_times_acceleration', 'pauses_length_mean']]
-
+    #feature_df_2 = pd.concat(features_df_list_2)  
+    #feature_df_2x = feature_df_2[['Driver', 'Trip', 'mean_speed_times_acceleration', 'pauses_length_mean']]    
+    
     # feature_df = pd.merge(feature_df_1, feature_df_2x, on=['Driver', 'Trip'], sort = False)
-
-    feature_df = feature_df_1
-
+    
+    feature_df = feature_df_1    
+    
     feature_df.reset_index(inplace = True)
     df_list = []
 
     for i, (_, driver_df) in enumerate(feature_df.groupby('Driver')):
+
         indeces = np.append(np.arange(i * 200), np.arange((i+1) * 200, len(feature_df)))
         other_trips = indeces[np.random.randint(0, len(indeces) - 1, 200)]
         others = feature_df.iloc[other_trips]
