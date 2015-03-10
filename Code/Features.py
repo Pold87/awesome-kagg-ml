@@ -27,9 +27,27 @@ class Features:
         self.rural_speeds = self.euclidean_distances[self.rural_mask]
         self.freeway_mask = (self.euclidean_distances > 55) & (self.euclidean_distances < 120)
         self.freeway_speeds = self.euclidean_distances[self.freeway_mask]
-        self.angles = np.array(self.angles_helper())
+        self.city_acc_and_dec = self.acc_and_dec[self.city_mask[:-1]]
+        self.rural_acc_and_dec = self.acc_and_dec[self.rural_mask[:-1]]
+        self.freeway_acc_and_dec = self.acc_and_dec[self.freeway_mask[:-1]]
+        # self.angles = np.array(self.angles_helper())
         self.stop_time = self.total_stop_time()
         self.pauses = self.pauses_helper()
+        self.rural_acc_mask = (self.rural_acc_and_dec > 0.5)
+        self.rural_dec_mask = (self.rural_acc_and_dec < 0.5)
+        self.rural_accs = self.rural_acc_and_dec[self.rural_acc_mask]
+        self.rural_decs = self.rural_acc_and_dec[self.rural_dec_mask]
+
+        self.city_acc_mask = (self.city_acc_and_dec > 0.5)
+        self.city_dec_mask = (self.city_acc_and_dec < 0.5)
+        self.city_accs = self.city_acc_and_dec[self.city_acc_mask]
+        self.city_decs = self.city_acc_and_dec[self.city_dec_mask]
+
+        self.freeway_acc_mask = (self.freeway_acc_and_dec > 0.5)
+        self.freeway_dec_mask = (self.freeway_acc_and_dec < 0.5)
+        self.freeway_accs = self.freeway_acc_and_dec[self.freeway_acc_mask]
+        self.freeway_decs = self.freeway_acc_and_dec[self.freeway_dec_mask]
+
 
     #### Helpers
 
@@ -107,6 +125,26 @@ class Features:
         acc = np.median(self.accelerations)
         return acc
 
+    def median_acceleration_city(self):
+
+        return self.zero_or_mean(self.city_accs)
+
+    def median_acceleration_rural(self):
+
+        return self.zero_or_mean(self.rural_accs)
+
+    def median_acceleration_freeway(self):
+        return self.zero_or_mean(self.freeway_accs)
+
+    def median_deceleration_city(self):
+        return self.zero_or_mean(self.city_decs)
+
+    def median_deceleration_rural(self):
+        return self.zero_or_mean(self.rural_decs)
+
+    def median_deceleration_freeway(self):
+        return self.zero_or_mean(self.freeway_decs)
+
     def median_deceleration(self):
         acc = np.median(self.decelerations)
         return acc
@@ -154,7 +192,7 @@ class Features:
     def sd_acceleration(self):
         return np.std(self.accelerations)
 
-    def df_deceleration(self):
+    def sd_deceleration(self):
         return np.std(self.decelerations)
 
     def sd_speed(self):
@@ -165,6 +203,30 @@ class Features:
 
     def acceleration_time(self):
         return len(self.accelerations) / self.total_time
+
+
+    def acceleration_time_city(self):
+
+        return len(self.city_accs) / self.total_time
+
+    def acceleration_time_rural(self):
+        return len(self.rural_accs) / self.total_time
+
+    def acceleration_time_freeway(self):
+
+        return len(self.freeway_accs) / self.total_time
+
+    def deceleration_time_city(self):
+
+        return len(self.city_decs) / self.total_time
+
+    def deceleration_time_rural(self):
+
+        return len(self.rural_decs) / self.total_time
+
+    def deceleration_time_freeway(self):
+
+        return len(self.freeway_decs) / self.total_time
 
     def deceleration_time(self):
         return len(self.decelerations) / self.total_time
@@ -223,6 +285,24 @@ class Features:
 
     def stop_time_ratio(self):
         return self.stop_time / self.total_time
+
+    def zero_acceleration_ratio_city(self):
+
+        zero_acc_mask = (self.city_acc_and_dec > - 0.5) & (self.city_acc_and_dec < 0.5)
+
+        return len(self.city_acc_and_dec[zero_acc_mask]) / self.total_time
+
+    def zero_acceleration_ratio_rural(self):
+
+        zero_acc_mask = (self.rural_acc_and_dec > -0.5) & (self.rural_acc_and_dec < 0.5)
+
+        return len(self.rural_acc_and_dec[zero_acc_mask]) / self.total_time
+
+    def zero_acceleration_ratio_freeway(self):
+
+        zero_acc_mask = (self.freeway_acc_and_dec > -0.5) & (self.freeway_acc_and_dec < 0.5)
+
+        return len(self.freeway_acc_and_dec[zero_acc_mask]) / self.total_time
 
     def extract_all_features(self):
         # Data frame for collecting the features

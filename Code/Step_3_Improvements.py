@@ -10,7 +10,7 @@ from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.base import ClassifierMixin, BaseEstimator
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier
 
 
 class EnsembleClassifier(BaseEstimator, ClassifierMixin):
@@ -35,11 +35,11 @@ def create_submission_file(df):
 
     # Find file number for new file
     file_num = 0
-    while path.isfile('submission-{}.csv'.format(file_num)):
+    while path.isfile('submission-Improvements-{}.csv'.format(file_num)):
         file_num += 1
 
     # Write final submission
-    df.to_csv('submission-{}.csv'.format(file_num), index = False)
+    df.to_csv('submission-Improvements-{}.csv'.format(file_num), index = False)
 
 
 def calc_prob(df_features_driver, df_features_other):
@@ -54,12 +54,12 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
-    model = RandomForestClassifier(500, n_jobs=-1, criterion='entropy', max_features='log2')
+    #model = RandomForestClassifier(200)
     # model = BaggingClassifier(base_estimator = [RandomForestClassifier(), linear_model.LogisticRegression()])
     # model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
     #                             GradientBoostingClassifier])
-    # model = GradientBoostingClassifier(n_estimators = 500, learning_rate = 0.05, random_state=0, subsample = 0.85)
-    # model = GradientBoostingRegressor(n_estimators = 1000)
+    # model = GradientBoostingClassifier(n_estimators = 10000)
+    model = AdaBoostClassifier(base_estimator=RandomForestClassifier(500))
     # model = ExtraTreesClassifier(500, criterion='entropy')
 
     feature_columns = df_train.iloc[:, 4:]

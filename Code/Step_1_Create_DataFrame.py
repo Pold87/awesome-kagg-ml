@@ -69,7 +69,7 @@ def read_chunk(chunk_num, drivers_path, drivers):
 
     df_all_drivers = pd.concat(mega_df)
 
-    filename = 'dataframe_' + str(chunk_num) + '.h5'
+    filename = '../chunks_small/chunk_small_' + str(chunk_num) + '.h5'
 
     # Save dataframe in HDF5
     df_all_drivers.to_hdf(path.join(filename),'table')#'chunks', filename), 'table')
@@ -93,10 +93,10 @@ def read_all_chunks(drivers_path, drivers, number_of_chunks):
 def main():
 
     # Number of chunks (depends on memory capacities)
-    number_of_chunks = 16
+    number_of_chunks = 1
 
     # All trips and drivers from Kaggle:
-    drivers_path = path.join("..", "drivers")
+    drivers_path = path.join("..", "drivers_small")
     drivers = listdir(drivers_path)
     read_all_chunks(drivers_path, drivers, number_of_chunks)
 

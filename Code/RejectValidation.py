@@ -13,6 +13,13 @@ from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 
 
+
+def minusOneToZero(x):
+    if x > 0.5:
+        return 1
+    else:
+        return 0
+
 class EnsembleClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, classifiers=None):
         self.classifiers = classifiers
@@ -44,6 +51,8 @@ def create_submission_file(df):
 
 def calc_prob(df_features_driver, df_features_other):
 
+    classification = True
+
     df_train = df_features_driver.append(df_features_other)
     df_train.reset_index(inplace = True)
     df_train.Driver = df_train.Driver.astype(int)
@@ -54,7 +63,7 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
-    model = RandomForestClassifier(500, n_jobs=-1, criterion='entropy', max_features='log2')
+    model = RandomForestClassifier(500, n_jobs=-1)
     # model = BaggingClassifier(base_estimator = [RandomForestClassifier(), linear_model.LogisticRegression()])
     # model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
     #                             GradientBoostingClassifier])
@@ -70,12 +79,19 @@ def calc_prob(df_features_driver, df_features_other):
 
     df_submission['driver_trip'] = create_first_column(df_features_driver)
 
-    probs_array = model.predict_proba(feature_columns[:200]) # Return array with the probability for every driver
+
+
+
+
+    probs_array = model.predict_proba(feature_columns) # Return array with the probability for every driver
     probs_df = pd.DataFrame(probs_array)
 
-    df_submission['prob'] = np.array(probs_df.iloc[:, 1])
+    hopefully_rejected =  probs_array[201:]
+    hopefully_rejected_df = pd.DataFrame(hopefully_rejected)
 
-    return df_submission
+    score = hopefully_rejected_df.loc[:, 1].mean()
+
+    print(score)
 
 def create_first_column(df):
     """
