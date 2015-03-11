@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from scipy import spatial
+from scipy import spatial, ndimage
 
 
 class Features:
@@ -48,6 +48,10 @@ class Features:
         self.freeway_accs = self.freeway_acc_and_dec[self.freeway_acc_mask]
         self.freeway_decs = self.freeway_acc_and_dec[self.freeway_dec_mask]
 
+        self.corner_mask = self.corner_mask_helper(np.pi/32)
+        self.straight_mask = np.logical_not(self.corner_mask)
+
+
 
     #### Helpers
 
@@ -69,16 +73,16 @@ class Features:
 
     def angles_helper(self):
         return np.degrees(np.arctan2(np.diff(self.df.y), np.diff(self.df.x)))
-        
+
     ### NEW
     def acceleration_mask(self):
         return (self.acc_and_dec > 0)
-    
+
     ###NEW
     # not sure if this works
     def pauses_helper(self):
         """ create bool array that is true if car moves"""
-        return np.array(self.euclidean_distances > 0) 
+        return np.array(self.euclidean_distances > 0)
 
     ### Features
 
@@ -158,13 +162,13 @@ class Features:
 
     def max_deceleration(self):
         return np.percentile(self.decelerations, 90)
-        
+
     def angle_sum(self):
         return self.angles.sum()
-        
+
     def angle_mean(self):
         return self.angles.mean()
-    
+
     #####New
     def angle_acceeleration_mean(self):
         ##ToDo: match sizes of arrays
@@ -172,22 +176,22 @@ class Features:
     ####New
     def angle_speed_mean(self):
         return np.mean(self.angles/self.euclidean_distances)
-        
-    ####NEW 
+
+    ####NEW
     # I think it works, but I haven't tested it.
     def pauses_length_mean(self):
         return self.zero_or_mean(self.pauses) #self.pauses.mean()
-    
+
     ####NEW
-    # works on toy problems, under the assumption that city_mask is a numpy 
+    # works on toy problems, under the assumption that city_mask is a numpy
     #bool array
     def pauses_length_mean_rural(self):
         return self.zero_or_mean(self.pauses[-self.city_mask])
-    
+
     #### NEW
     def pauses_length_mean_city(self):
         return self.zero_or_mean(self.pauses[self.city_mask])
-       
+
 
     def sd_acceleration(self):
         return np.std(self.accelerations)
@@ -304,6 +308,18 @@ class Features:
 
         return len(self.freeway_acc_and_dec[zero_acc_mask]) / self.total_time
 
+    def corner_mask_helper(self, threshold):
+        # if difference in angles on point x,y is greater than threshold then
+        # x,y is a corner point
+        mask = np.abs(np.diff(np.arctan2(self.xDiff, self.yDiff))) >= (threshold)
+
+        # append False for first and last point
+        mask = np.concatenate(([False], mask, [False]))
+
+        # remove single point corners
+        return ndimage.binary_opening(mask, [True, True])
+
+
     def extract_all_features(self):
         # Data frame for collecting the features
         series_features = pd.Series()
@@ -316,5 +332,5 @@ class Features:
             series_features[feature] = feature_method()
 
         return series_features
-        
+
 
