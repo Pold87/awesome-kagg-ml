@@ -1,4 +1,4 @@
-addpath('../drivers/3');
+folder = '../drivers/2/';
 
 trips = 200;
 sequences{trips} = [];
@@ -10,7 +10,7 @@ bins = 10;
 % cntr = 1;
 %%% matlabpool to initialize workers
 parfor i = 1:trips
-	trip = csvread([num2str(i) '.csv'], 1, 0);
+	trip = csvread([folder num2str(i) '.csv'], 1, 0);
 	% trip2 = csvread([num2str(2) '.csv'], 1, 0);
 
 % 	trip = trip(1:50,:);
