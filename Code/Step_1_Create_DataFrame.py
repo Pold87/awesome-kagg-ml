@@ -43,7 +43,7 @@ def read_chunk(chunk_num, drivers_path, drivers):
     for driver in drivers:
 
         i += 1
-        print(i)
+        # print(i)
         list_one_driver_all_trips = []
 
         driver_fullpath = path.join(drivers_path, driver)
@@ -69,7 +69,8 @@ def read_chunk(chunk_num, drivers_path, drivers):
 
     df_all_drivers = pd.concat(mega_df)
 
-    filename = '../chunks_small/chunk_small_' + str(chunk_num) + '.h5'
+    # rename 's/.*\_(\d{1})\..*$/dataframe_0$1.h5/' *.h5
+    filename = 'dataframe_{:02d}.h5'.format(chunk_num)
 
     # Save dataframe in HDF5
     df_all_drivers.to_hdf(path.join(filename),'table')#'chunks', filename), 'table')

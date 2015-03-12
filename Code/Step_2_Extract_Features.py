@@ -56,13 +56,14 @@ def main():
     ]
 
     # Chunks (containing parts of the mega df)
-    chunk_path = path.join("..", "chunks_small")
-    chunks = listdir(chunk_path)
+    chunk_path = path.join("..", "chunks_big")
+    # prepend zero with rename 's/.*\_(\d{1})\..*$/dataframe_0$1.h5/' *.h5
+    chunks = sorted(listdir(chunk_path))
 
     for i, chunk in enumerate(chunks):
         print(chunk)
 
-        file_name = "goood_features_small_{}.h5".format(i)
+        file_name = "goood_features_small_{:02d}.h5".format(i)
         df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
         features_for_this_chunk = []
