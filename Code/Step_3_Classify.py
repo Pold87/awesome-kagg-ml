@@ -10,23 +10,12 @@ from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.base import ClassifierMixin, BaseEstimator
+# from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 
 
-class EnsembleClassifier(BaseEstimator, ClassifierMixin):
-    def __init__(self, classifiers=None):
-        self.classifiers = classifiers
-        self.predictions_ = list()
+weights = np.array([])
 
-    def fit(self, x, y):
-        for classifier in self.classifiers:
-            classifier.fit(x, y)
-
-    def predict_proba(self, x):
-        for classifier in self.classifiers:
-            self.predictions_.append(classifier.predict_proba(x))
-            m = np.mean(self.predictions_, axis=0)
-        return m
 
 def create_submission_file(df):
     """
@@ -42,11 +31,13 @@ def create_submission_file(df):
     df.to_csv('submission-{}.csv'.format(file_num), index = False)
 
 
-def calc_prob(df_features_driver, df_features_other):
+def calc_prob(df_features_driver, df_features_other, weights):
 
     df_train = df_features_driver.append(df_features_other)
     df_train.reset_index(inplace = True)
     df_train.Driver = df_train.Driver.astype(int)
+
+    model = RandomForestClassifier(n_estimators = 1000, min_samples_leaf=2)
 
     # So far, the best result was achieved by using a RandomForestClassifier with Bagging
     # model = BaggingClassifier(base_estimator = ExtraTreesClassifier())
@@ -54,24 +45,28 @@ def calc_prob(df_features_driver, df_features_other):
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = linear_model.LogisticRegression())
     # model = BaggingClassifier(base_estimator = AdaBoostClassifier())
-    model = RandomForestClassifier(500, n_jobs=-1, criterion='entropy', max_features='log2')
+
     # model = BaggingClassifier(base_estimator = [RandomForestClassifier(), linear_model.LogisticRegression()])
     # model = EnsembleClassifier([BaggingClassifier(base_estimator = RandomForestClassifier()),
     #                             GradientBoostingClassifier])
     # model = GradientBoostingClassifier(n_estimators = 500, learning_rate = 0.05, random_state=0, subsample = 0.85)
     # model = GradientBoostingRegressor(n_estimators = 1000)
-    # model = ExtraTreesClassifier(500, criterion='entropy')
+    # model = RandomForestClassifier(500)
 
     feature_columns = df_train.iloc[:, 4:]
 
     # Train the classifier
-    model.fit(feature_columns, df_train.Driver)
+    model.fit(feature_columns, df_train.Driver, sample_weight=weights)
     df_submission = pd.DataFrame()
 
     df_submission['driver_trip'] = create_first_column(df_features_driver)
 
     probs_array = model.predict_proba(feature_columns[:200]) # Return array with the probability for every driver
     probs_df = pd.DataFrame(probs_array)
+
+    # wrong_probs_array = model.predict_proba(feature_columns[200:]) # Return array with the probability for every driver
+    # wrong_probs_df = pd.DataFrame(wrong_probs_array)
+    # print(wrong_probs_df)
 
     df_submission['prob'] = np.array(probs_df.iloc[:, 1])
 
@@ -110,17 +105,43 @@ def main():
     feature_df.reset_index(inplace = True)
     df_list = []
 
+    stacks = 1
+
     for i, (_, driver_df) in enumerate(feature_df.groupby('Driver')):
 
-        indeces = np.append(np.arange(i * 200), np.arange((i+1) * 200, len(feature_df)))
-        other_trips = indeces[np.random.randint(0, len(indeces) - 1, 200)]
-        others = feature_df.iloc[other_trips]
-        others.Driver = int(0)
+        weights_driver = np.ones(200)
 
-        submission_df = calc_prob(driver_df, others)
-        df_list.append(submission_df)
+
+        for s in reversed(range(stacks)):
+
+            # amount_others = (s + 1) * 25
+            amount_others = 200
+            weights_others = weights_driver.mean() * np.ones(amount_others)
+
+            indeces = np.append(np.arange(i * 200), np.arange((i+1) * 200, len(feature_df)))
+            other_trips = indeces[np.random.randint(0, len(indeces) - 1, amount_others)]
+            others = feature_df.iloc[other_trips]
+            others.Driver = int(0)
+            # others['weights'] = weights_others
+            # driver_df['weights'] = weights_driver
+
+            submission_df = calc_prob(driver_df, others, np.append(weights_driver, weights_others))
+            # weights_driver = submission_df.prob
+            # print(weights_driver)
+
+
+            sorted_df = submission_df.sort(['prob'])
+            step = 1 / 200
+            new_probs = np.arange(0, 1, step)
+
+            sorted_df['prob'] = new_probs
+
+        df_list.append(sorted_df)
 
     submission_df = pd.concat(df_list)
+    weights = submission_df.iloc[:, 1]
+
+
     create_submission_file(submission_df)
 
 

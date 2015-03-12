@@ -5,8 +5,6 @@ def AUC(probs_list):
         probabilities
     '''
     probs_list = probs_list[probs_list[:,1].argsort()]
-
-    print(probs_list)
     
     cumulative = 0;
     y = 0
