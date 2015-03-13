@@ -3,7 +3,9 @@ import numpy as np
 from os import path, listdir
 import matplotlib.pyplot as plt
 import time
+import h5py
 import AUC
+import re
 from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.svm import NuSVR, OneClassSVM, NuSVC
 
@@ -21,7 +23,7 @@ def crossvalidation(df_features_driver, df_features_other, nfold, model):
 
     for n in range(nfold):
 
-        classification = True
+        classification = False
 
         len_fold = int(len(df_features_driver)/nfold)
         ind_train = np.append(np.arange(0,int(n)*len_fold,1),
@@ -35,11 +37,20 @@ def crossvalidation(df_features_driver, df_features_other, nfold, model):
         df_test.reset_index(inplace = True)
         df_test.Driver = df_test.Driver.astype(int)        
 
-        feature_columns_train= df_train.iloc[:, 4:]
-        feature_columns_test= df_test.iloc[:, 4:]
+        feature_columns_train= df_train.iloc[:, 4:-1]
+        feature_columns_test= df_test.iloc[:, 4:-1]
+
+        # print(len(feature_columns_train))
+
+        # for x in np.array(df_train.weights):
+        #     print(x)
+
+        # print()
+        # print("New")
+        # print()
 
         # Train the classifier
-        model.fit(feature_columns_train, df_train.Driver)        
+        model.fit_transform(feature_columns_train, df_train.Driver, sample_weight = np.array(df_train.weights))
 
         if classification:
             probs_df = pd.DataFrame()
@@ -52,7 +63,7 @@ def crossvalidation(df_features_driver, df_features_other, nfold, model):
         else:
             probs_array = model.predict_proba(feature_columns_test) # Return array with the probability for every driver
             probs_df = pd.DataFrame(probs_array)
-            print(probs_df.iloc[:, 1])
+            # print(probs_df.iloc[:, 1])
 
         probs_list = np.array(['1', probs_df.ix[0, 1]])
 
@@ -67,8 +78,26 @@ def crossvalidation(df_features_driver, df_features_other, nfold, model):
     
     return np.mean(df_auc)  
     
-    
+# def calc_weights():
+
+    # tripmatrix_files = listdir("../tripmatching")
+    #
+    # arr = np.array([])
+    #
+    # for m in tripmatrix_files:
+    #
+    #     h5f = h5py.File('../tripmatching/' + m, 'r')
+    #     b = h5f[n][:]
+    #     h5f.close()
+    #
+    #     arr = np.append(arr, np.amax(b, axis = 1)[1:])
+    #
+    # return arr
+
+
 def main():
+
+    # calc_weights()
 
     features_path = path.join('..', 'features_small')
     features_files = listdir(features_path)
@@ -82,7 +111,21 @@ def main():
     t0 = time.time()
 
     # model1 = RandomForestClassifier(n_estimators=10)
-    model1 = NuSVC(nu = 0.1)
+    # model1 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 1)
+    # model2 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 2)
+    # model3 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 3)
+    # model4 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 4)
+    model1 = RandomForestClassifier(500, n_jobs=-1)
+    model2 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 2)
+    model3 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 3)
+    model4 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 4)
+    model5 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 5)
+    model6 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 6)
+    # model1 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 1)
+    # model2 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 2)
+    # model3 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 2)
+    # model4 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 3)
+    # model5 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 4)
     # model2 = NuSVC(nu = 0.2)
     # model3 = NuSVC(nu = 0.3)
     # model4 = NuSVC(nu = 0.4)
@@ -101,10 +144,10 @@ def main():
 
 
     models = [model1
-         # , model2
-         # , model3
-         #  , model4
-         #  , model5
+         , model2
+         , model3
+         , model4
+         , model5
          # , model6
          # , model7
          # , model8
@@ -113,25 +156,43 @@ def main():
          # , model11
     ]
 
+    stacks = 10
+
     for model in models:
 
-        for i, (_, driver_df) in enumerate(feature_df.groupby('Driver')):
+        for i, (driver, driver_df) in enumerate(feature_df.groupby('Driver')):
 
-            indeces = np.append(np.arange(0,int(i)*200,1),np.arange((int(i)+1)*200,len(feature_df),1))
-            # Get 400 other trips
-            other_trips = indeces[np.random.randint(0, len(indeces) - 1, 200)]
+                weights_driver = np.ones(200)
+                weights_others = 5 * np.ones(200)
 
-            others = feature_df.iloc[other_trips]
+                # for s in range(stacks):
 
+                m = 'data-' + str(driver) + '.h5'
+                n = 'dataset_' + str(driver)
 
-            others.Driver = int(0)
+                h5f = h5py.File('../tripmatching/' + m, 'r')
+                b = h5f[n][:]
+                h5f.close()
 
-            driver_df.Driver = int(1)
+                # weights = np.amax(b, axis = 1)[1:]
 
-            crossvalidation_df = crossvalidation(driver_df, others, nfold, model)
-            df_list.append(crossvalidation_df)
-           # if i % 100 == 0:
-           #     print(i, ': ', time.time() - t0)
+                indeces = np.append(np.arange(0,int(i)*200,1),np.arange((int(i)+1)*200,len(feature_df),1))
+                # Get 200 other trips
+                other_trips = indeces[np.random.randint(0, len(indeces) - 1, 200)]
+
+                others = feature_df.iloc[other_trips]
+
+                others.Driver = int(0)
+
+                driver_df.Driver = int(1)
+
+                driver_df['weights'] = weights_driver
+                others['weights'] = weights_others
+
+                crossvalidation_df = crossvalidation(driver_df, others, nfold, model)
+                df_list.append(crossvalidation_df)
+               # if i % 100 == 0:
+               #     print(i, ': ', time.time() - t0)
 
 
         #plt.hist(df_list, bins=100, normed=1)
