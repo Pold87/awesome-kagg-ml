@@ -171,10 +171,10 @@ def main():
                 n = 'dataset_' + str(driver)
 
                 h5f = h5py.File('../tripmatching/' + m, 'r')
-                b = h5f[n][:]
+                weights_matrix = h5f[n][:]
                 h5f.close()
 
-                # weights = np.amax(b, axis = 1)[1:]
+                # weights = np.amax(weights_matrix, axis = 1)[1:]
 
                 indeces = np.append(np.arange(0,int(i)*200,1),np.arange((int(i)+1)*200,len(feature_df),1))
                 # Get 200 other trips
