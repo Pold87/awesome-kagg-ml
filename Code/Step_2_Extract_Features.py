@@ -53,6 +53,7 @@ def main():
                 #, 'pauses_length_mean_rural'
                 #, 'pauses_length_mean_city' # stopngo
                 #, 'mean_speed_times_acceleration'
+               , 'break_distance'
     ]
 
     # Chunks (containing parts of the mega df)
