@@ -1,6 +1,9 @@
+from __future__ import division
 import pandas as pd
 import numpy as np
 from scipy import spatial, ndimage
+from collections import Counter
+
 
 
 class Features:
@@ -16,11 +19,17 @@ class Features:
         self.y_start = df['y'][0]
         self.x_finish = df['x'][-1]
         self.y_finish = df['y'][-1]
+
         self.euclidean_distances = self.euclidean_helper()
+
         self.total_time = self.trip_time()
+
+        self.mean_speed = self.mean_speed_helper()
+
         self.acc_and_dec = np.diff(self.euclidean_distances)
         self.accelerations = self.acc_and_dec[self.acc_and_dec > 0]
         self.decelerations = self.acc_and_dec[self.acc_and_dec < 0]
+
         self.city_mask = (self.euclidean_distances > 5) & (self.euclidean_distances < 45)
         self.city_speeds = self.euclidean_distances[self.city_mask]
         self.rural_mask = (self.euclidean_distances > 40) & (self.euclidean_distances < 60)
@@ -30,9 +39,10 @@ class Features:
         self.city_acc_and_dec = self.acc_and_dec[self.city_mask[:-1]]
         self.rural_acc_and_dec = self.acc_and_dec[self.rural_mask[:-1]]
         self.freeway_acc_and_dec = self.acc_and_dec[self.freeway_mask[:-1]]
-        # self.angles = np.array(self.angles_helper())
+        self.angles = np.array(self.angles_helper())
         self.stop_time = self.total_stop_time()
         self.pauses = self.pauses_helper()
+
         self.rural_acc_mask = (self.rural_acc_and_dec > 0.5)
         self.rural_dec_mask = (self.rural_acc_and_dec < 0.5)
         self.rural_accs = self.rural_acc_and_dec[self.rural_acc_mask]
@@ -51,6 +61,7 @@ class Features:
         self.corner_mask = self.corner_mask_helper(np.pi/32)
         self.straight_mask = np.logical_not(self.corner_mask)
 
+        self.sta = self.euclidean_distances[self.acceleration_mask()] * self.accelerations
 
 
     #### Helpers
@@ -74,17 +85,46 @@ class Features:
     def angles_helper(self):
         return np.degrees(np.arctan2(np.diff(self.df.y), np.diff(self.df.x)))
 
-    ### NEW
+        
+    def mean_speed_helper(self):
+        return np.median(self.euclidean_distances)
+
     def acceleration_mask(self):
         return (self.acc_and_dec > 0)
 
-    ###NEW
-    # not sure if this works
     def pauses_helper(self):
         """ create bool array that is true if car moves"""
-        return np.array(self.euclidean_distances > 0)
+        return np.array(self.euclidean_distances > 0.001)
 
     ### Features
+
+    def break_distance(self):
+        ls, num = ndimage.measurements.label(self.euclidean_distances)
+        return np.sum(self.euclidean_distances) / num
+
+    def mean_speed_2(self):
+        return self.mean_speed ** 2
+
+    def mean_speed_3(self):
+        return self.mean_speed ** 3
+        
+    def onicescu_energy_speed(self):
+        dists = np.round(np.array(self.euclidean_distances)).astype(int)
+        probs = np.bincount(dists) / self.total_time
+        onicescu = (probs ** 2).sum()
+        return np.log(onicescu)
+
+    def onicescu_energy_acc(self):
+        dists = np.round(np.array(self.accelerations)).astype(int)
+        probs = np.bincount(dists) / len(self.accelerations)
+        onicescu = (probs ** 2).sum()
+        return onicescu
+
+    def onicescu_energy_dec(self):
+        dists = np.absolute(np.round(np.array(self.decelerations))).astype(int)
+        probs = np.bincount(dists) / len(self.decelerations)
+        onicescu = (probs ** 2).sum()
+        return onicescu
 
     def trip_time(self):
         """
@@ -154,14 +194,13 @@ class Features:
         return acc
 
     def max_speed(self):
-        # Could be done differently now
         return np.percentile(self.euclidean_distances, 90)
 
     def max_acceleration(self):
-        return np.percentile(self.accelerations, 90)
+        return np.percentile(self.accelerations, 95)
 
     def max_deceleration(self):
-        return np.percentile(self.decelerations, 90)
+        return np.percentile(self.decelerations, 95)
 
     def angle_sum(self):
         return self.angles.sum()
@@ -169,29 +208,20 @@ class Features:
     def angle_mean(self):
         return self.angles.mean()
 
-    #####New
-    def angle_acceeleration_mean(self):
-        ##ToDo: match sizes of arrays
+    def angle_acceleration_mean(self):
         return np.mean(self.angles[self.acceleration_mask()]/self.accelerations)
-    ####New
+
     def angle_speed_mean(self):
         return np.mean(self.angles/self.euclidean_distances)
 
-    ####NEW
-    # I think it works, but I haven't tested it.
     def pauses_length_mean(self):
-        return self.zero_or_mean(self.pauses) #self.pauses.mean()
+        return self.zero_or_mean(self.pauses) 
 
-    ####NEW
-    # works on toy problems, under the assumption that city_mask is a numpy
-    #bool array
     def pauses_length_mean_rural(self):
         return self.zero_or_mean(self.pauses[-self.city_mask])
 
-    #### NEW
     def pauses_length_mean_city(self):
         return self.zero_or_mean(self.pauses[self.city_mask])
-
 
     def sd_acceleration(self):
         return np.std(self.accelerations)
@@ -203,11 +233,10 @@ class Features:
         return np.std(self.euclidean_distances)
 
     def minimum_deceleration(self):
-        return np.percentile(self.decelerations, 10)
+        return np.percentile(self.decelerations, 2)
 
     def acceleration_time(self):
         return len(self.accelerations) / self.total_time
-
 
     def acceleration_time_city(self):
 
@@ -235,24 +264,24 @@ class Features:
     def deceleration_time(self):
         return len(self.decelerations) / self.total_time
 
-    def zero_or_mean(self, speeds):
+    def zero_or_mean(self, speeds, default = 0):
 
         if len(speeds) == 0:
-            return 0
+            return default
         else:
             return np.mean(speeds)
 
     def mean_speed_city(self):
 
-        return self.zero_or_mean(self.city_speeds)
+        return self.zero_or_mean(self.city_speeds, 20)
 
     def mean_speed_rural(self):
 
-        return self.zero_or_mean(self.rural_speeds)
+        return self.zero_or_mean(self.rural_speeds, 40)
 
     def mean_speed_freeway(self):
 
-        return self.zero_or_mean(self.freeway_speeds)
+        return self.zero_or_mean(self.freeway_speeds, 65)
 
     def zero_or_std(self, speeds):
 
@@ -280,8 +309,23 @@ class Features:
     def freeway_time_ratio(self):
 
         time = self.freeway_speeds
-
         return len(time) / self.total_time
+
+    def speed_times_acc_mean(self):
+
+        return self.sta.mean()
+
+    def speed_times_acc_max(self):
+
+        return self.sta.max()
+
+    def speed_times_acc_min(self):
+
+        return self.sta.min()
+
+    def speed_times_acc_std(self):
+
+        return np.std(self.sta)
 
     def total_stop_time(self):
         mask = self.euclidean_distances < 5
@@ -292,21 +336,28 @@ class Features:
 
     def zero_acceleration_ratio_city(self):
 
-        zero_acc_mask = (self.city_acc_and_dec > - 0.5) & (self.city_acc_and_dec < 0.5)
+        zero_acc_mask = (self.city_acc_and_dec > - 1.5) & (self.city_acc_and_dec < 1.5)
 
         return len(self.city_acc_and_dec[zero_acc_mask]) / self.total_time
 
     def zero_acceleration_ratio_rural(self):
 
-        zero_acc_mask = (self.rural_acc_and_dec > -0.5) & (self.rural_acc_and_dec < 0.5)
+        zero_acc_mask = (self.rural_acc_and_dec > - 1.5) & (self.rural_acc_and_dec < 1.5)
 
         return len(self.rural_acc_and_dec[zero_acc_mask]) / self.total_time
 
     def zero_acceleration_ratio_freeway(self):
 
-        zero_acc_mask = (self.freeway_acc_and_dec > -0.5) & (self.freeway_acc_and_dec < 0.5)
+        zero_acc_mask = (self.freeway_acc_and_dec > -1.5) & (self.freeway_acc_and_dec < 1.5)
 
         return len(self.freeway_acc_and_dec[zero_acc_mask]) / self.total_time
+
+    def hausdorff(self):
+        D = spatial.distance.pdist(self.df, 'euclidean')
+        H1 = np.max(np.min(D, axis = 1))
+        H2 = np.max(np.min(D, axis = 0))
+
+        return (H1 + H2) / 2.
 
     def corner_mask_helper(self, threshold):
         # if difference in angles on point x,y is greater than threshold then

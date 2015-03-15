@@ -7,8 +7,9 @@ import multiprocessing as mp
 
 # Feature list
 features = ['trip_time'
-            , 'trip_air_distance'
-            , 'trip_distance'
+          , 'trip_air_distance'
+          , 'trip_distance'
+          , 'trip_air_distance_manhattan'
           , 'median_speed'
           , 'max_speed'
           , 'max_acceleration'
@@ -19,14 +20,14 @@ features = ['trip_time'
           , 'median_deceleration_city'
           , 'median_deceleration_rural'
           , 'median_deceleration_freeway'
+          , 'median_acceleration'
+          , 'median_deceleration'
           , 'sd_acceleration'
           , 'sd_deceleration'
           , 'sd_speed'
           , 'minimum_deceleration'
-            , 'acceleration_time'
-            , 'deceleration_time'
-        #   , 'angle_sum'
-        #   , 'angle_mean'
+          , 'acceleration_time'
+           , 'deceleration_time'
            , 'deceleration_time_city'
            , 'deceleration_time_rural'
            , 'deceleration_time_freeway'
@@ -35,7 +36,6 @@ features = ['trip_time'
            , 'acceleration_time_freeway'
            , 'mean_speed_city'
            , 'mean_speed_rural'
-           , 'mean_speed_freeway'
            , 'mean_speed_sd_city'
            , 'mean_speed_sd_rural'
            , 'mean_speed_sd_freeway'
@@ -46,13 +46,23 @@ features = ['trip_time'
            , 'stop_time_ratio'
            , 'zero_acceleration_ratio_city'
            , 'zero_acceleration_ratio_rural'
-           ,  'zero_acceleration_ratio_freeway'
-           # 'angle_acceleration_mean'
-           # , 'angle_speed_mean'
-            #, 'pauses_length_mean'
-            #, 'pauses_length_mean_rural'
-            #, 'pauses_length_mean_city' # stopngo
-            #, 'mean_speed_times_acceleration'
+           , 'zero_acceleration_ratio_freeway'
+           , 'mean_speed_2'
+           , 'mean_speed_3'
+           , 'onicescu_energy_speed'
+           , 'onicescu_energy_acc'
+           , 'onicescu_energy_dec'
+           , 'break_distance'
+           , 'speed_times_acc_mean'
+           , 'speed_times_acc_max'
+           , 'speed_times_acc_min'
+           , 'speed_times_acc_std'
+           , 'angle_sum'
+           , 'pauses_length_mean'
+           , 'pauses_length_mean_rural'
+           , 'pauses_length_mean_city'
+           ,'break_distance'
+            
 ]
 
 # Chunks (containing parts of the mega df)
@@ -77,7 +87,7 @@ def do_job(i, chunk):
     df_features_for_this_chunk = df_features_for_this_chunk.from_dict(features_for_this_chunk)
 
     # Write data frames containing the features to HDF5 file
-    df_features_for_this_chunk.to_hdf('/scratch/vstrobel/features32/' + file_name, 'table')
+    df_features_for_this_chunk.to_hdf('/scratch/vstrobel/features_opti_32/' + file_name, 'table')
     print("Written to", file_name)
 
 
