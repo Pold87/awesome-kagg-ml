@@ -61,6 +61,8 @@ features = ['trip_time'
            , 'pauses_length_mean'
            , 'pauses_length_mean_rural'
            , 'pauses_length_mean_city'
+           ,'break_distance'
+            
 ]
 
 # Chunks (containing parts of the mega df)

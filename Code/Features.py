@@ -94,9 +94,10 @@ class Features:
 
     def pauses_helper(self):
         """ create bool array that is true if car moves"""
-        return np.array(self.euclidean_distances > 0)
+        return np.array(self.euclidean_distances > 0.001)
 
     ### Features
+
     def break_distance(self):
         ls, num = ndimage.measurements.label(self.euclidean_distances)
         return np.sum(self.euclidean_distances) / num
