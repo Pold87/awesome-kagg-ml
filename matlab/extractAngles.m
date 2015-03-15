@@ -1,7 +1,7 @@
 function [ data ] = extractAngles( trip )
 %EXTRACTANGLES extract angles from a trip
 
-	data = zeros(1, size(trip, 1) - 2);
+	data = zeros(1, size(trip, 1));
 	for iter = 2 : size(trip, 1) - 1
 		 P1 = trip(iter - 1, :);
 		 P2 = trip(iter, :);

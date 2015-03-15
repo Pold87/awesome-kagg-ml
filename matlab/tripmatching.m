@@ -54,7 +54,7 @@ for i = 1:trips
 	tmp = [];
 	for j = 1:5:length(sequences{i}) - 4
 		nt = sum(sequences{i}(j:j+4));
-        nts = [nts ; nt];
+%         nts = [nts ; nt];
 		if nt > threshold
 			tmp = [tmp, 'A'];
         elseif nt < -threshold
@@ -73,7 +73,6 @@ sym_scores = repmat([-100000], trips, trips);
 for i = 1:trips
 	for j = i+1:trips
 		[score, alignment] = bestalignment(simplified{i},simplified{j});
-        nwalign(simplified{i}, simplified{j}, 'Alphabet', 'NT', 'ScoringMatrix', 'NUC44', 'GapOpen', 10000);
 		sym_scores(i, j) = score;
 		sym_scores(j, i) = score;
 	end
