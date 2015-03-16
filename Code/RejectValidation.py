@@ -10,7 +10,7 @@ from sklearn.cluster import DBSCAN
 from sklearn import metrics
 from sklearn.datasets.samples_generator import make_blobs
 from sklearn.base import ClassifierMixin, BaseEstimator
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 
 
 def calc_prob(df_features_driver, df_features_other, df_features_test_trips, model):
@@ -39,7 +39,7 @@ def calc_prob(df_features_driver, df_features_other, df_features_test_trips, mod
 
 def main():
 
-    features_path_1 = path.join('..', 'features_small')
+    features_path_1 = '/scratch/vstrobel/features_angles_32/'
     features_files_1 = listdir(features_path_1)
 
 
@@ -53,40 +53,13 @@ def main():
     df_list = []
 
 
-    # model1 = RandomForestClassifier(n_estimators=10)
-    # model1 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 1)
-    # model2 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 2)
-    # model3 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 3)
-    # model4 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 4)
     model1 = GradientBoostingClassifier(n_estimators=1000)
     model2 = ExtraTreesClassifier()
-    # model2 = GradientBoostingClassifier(1000)
-    # model3 = GradientBoostingClassifier(1000)
-    # model4 = GradientBoostingClassifier(1000)
-    # model5 = GradientBoostingClassifier(1000)
-    # model1 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, min_samples_split = 1)
-    # model2 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 2)
-    # model3 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 2)
-    # model4 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 3)
-    # model5 = RandomForestClassifier(1000, n_jobs=-1, min_samples_leaf = 2, max_leaf_nodes = 4)
-    # model1 = OneClassSVM(kernel = 'sigmoid')
-    #model2 = RandomForestClassifier(n_estimators=200, max_features='log2', criterion='entropy')
-    #model3 = RandomForestClassifier(n_estimators=500, max_features='log2', criterion='entropy')
-    # model4 = RandomForestClassifier(n_estimators=200, bootstrap=False)
-    # model5 = RandomForestClassifier(n_estimators=200, oob_score=False)
-    # model6 = RandomForestClassifier(n_estimators=200, oob_score=True)
-    # model7 = RandomForestClassifier(n_estimators=200, random_state=0)
-    # model8 = NuSVR()
-    # model9 = NuSVR(C = 0.5)
-    # model10 = NuSVR(kernel = 'sigmoid')
-    # model11 = NuSVR(nu = 0.7)
+
 
 
     models = [model1
          , model2
-         # , model3
-         # , model4
-         # , model5
     ]
 
     for model in models:

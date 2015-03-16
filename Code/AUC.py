@@ -1,3 +1,5 @@
+from __future__ import division
+
 def AUC(probs_list):
     # very simplistic version, maybe not 100% accurate -> only approximation
     ''' Calculates the area under the receiver operant characteristic curve

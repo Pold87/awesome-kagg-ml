@@ -4,7 +4,7 @@ from os import path, listdir
 import matplotlib.pyplot as plt
 import time
 import AUC
-from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.svm import NuSVR, OneClassSVM, NuSVC
 
 
@@ -85,7 +85,7 @@ def create_first_column(df):
 
 def main():
 
-    features_path_1 = path.join('..', 'features_small')
+    features_path_1 = '/scratch/vstrobel/features_angles_32/'
     features_files_1 = listdir(features_path_1)
 
     # Get data frame that contains each trip with its features
@@ -98,13 +98,9 @@ def main():
     df_list1 = []
     df_list2 = []
 
-    model1 = GradientBoostingClassifier(n_estimators=5000, min_samples_leaf=2)
-    model4 = ExtraTreesClassifier()
-    model5 = RandomForestClassifier()
+    model1 = RandomForestClassifier(n_estimators=1000, min_samples_leaf=2)
 
     models = [model1
-         , model4
-         , model5
     ]
 
 
@@ -126,6 +122,9 @@ def main():
             score1, score2 = cross_classify(driver_df, others, test, nfold, model)
             df_list1.append(score1)
             df_list2.append(score2)
+
+            print(score1)
+            print(score2)
 
         print(np.array(df_list1).mean())
         print(np.array(df_list2).mean())

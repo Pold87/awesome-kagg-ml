@@ -11,7 +11,7 @@ DISTANCE = 100
 
 # Chunks (containing parts of the mega df)
 chunk_path = "/scratch/vstrobel/chunks32"
-matched_trips_path = "home/vstrobel/awesome-kagg-ml/matched"
+matched_trips_path = "/scratch/vstrobel/matched/"
 
 def rotational(theta):
     # http://en.wikipedia.org/wiki/Rotation_matrix
@@ -23,7 +23,7 @@ def flip(x):
     # flip a trip if more that half of coordinates have y axis value above 0
     if np.sign(x[:,1]).sum() > 0:
         x = x.dot(np.array([[1,0],[0,-1]]))
-        return pd.DataFrame(x, columns=['x', 'y'])
+    return pd.DataFrame(x, columns=['x', 'y'])
 
 def rotate_trip(trip):
     # take last element
@@ -83,7 +83,7 @@ def similarity_trips(trips):
                         rlt = np.array(new_lt.dot(rotational(beta)))
                         rst = np.array(st.dot(rotational(beta)))
                         
-                        tmp_dis = paired_euclidean_distances(rlt[i:i+len(rst)], rst)
+                        tmp_dis = np.diagonal(cdist(rlt[i:i+len(rst)], rst))
                         sim_pts = (((DISTANCE/2)-tmp_dis) > 0).mean()
                         
                         if sim_pts > max_sim_rough:
@@ -139,7 +139,6 @@ def do_jobs(chunk):
     df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
     for driver, trips in df.groupby(level = ['Driver']):
-        print(driver)
         new_trips = preprocessing(driver, trips)
         sims = similarity_trips(new_trips)
         h5f = h5py.File(matched_trips_path + 'data-{}.h5'.format(driver), 'w')

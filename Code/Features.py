@@ -63,6 +63,37 @@ class Features:
 
         self.sta = self.euclidean_distances[self.acceleration_mask()] * self.accelerations
 
+        self.euclidean_distances_2 = self.euclidean_helper_2()        
+        
+        self.curve_mask = self.curve_mask_helper(np.pi / 16)
+        
+        self.radial_accel = self.radial_accel(50)
+            
+
+    def curve_mask_helper(self, threshold):
+        
+        angles = np.arctan2(np.abs(self.yDiff), np.abs(self.xDiff)) 
+        
+        curve_angles = np.abs((((1.5 * np.pi) - angles[1:] - (0.5 * np.pi - angles[0:-1]))) - np.pi)
+        
+        return curve_angles >= (threshold)
+        
+    def radial_accel(self, speed_threshold):
+        
+        side_a = self.euclidean_distances[0:-1][self.curve_mask]
+        side_b = self.euclidean_distances[1:][self.curve_mask]
+        side_c = self.euclidean_distances_2[0:][self.curve_mask]
+        
+        s = (side_a + side_b + side_c) / 2
+        
+        area = np.sqrt(s * (s - side_a) * (s - side_b) * (s - side_c))
+        
+        radii = (side_a * side_b * side_c)/(4 * area)
+        
+        smooth_mask = np.logical_and(radii > 0, side_c < (speed_threshold * 2))     
+        
+        return (((side_c[smooth_mask] * 0.5) ** 2) / radii[smooth_mask])
+        
 
     #### Helpers
 
@@ -77,17 +108,15 @@ class Features:
         """
         Calculate euclidean distance between point t and point t+2
         """
-        # TODO: Think about that again
-        diff1 = np.subtract(self.df.x[3:], self.df.x[1:-2]) ** 2
-        diff2 = np.subtract(self.df.y[3:], self.df.y[1:-2]) ** 2
-        return np.sqrt(diff1 + diff2)
+        diff1 = np.subtract(self.df.x[2:], self.df.x[0:-2])
+        diff2 = np.subtract(self.df.y[2:], self.df.y[0:-2])
+        return np.sqrt(diff1 ** 2 + diff2 ** 2)
 
     def angles_helper(self):
         return np.degrees(np.arctan2(np.diff(self.df.y), np.diff(self.df.x)))
 
-        
     def mean_speed_helper(self):
-        return np.median(self.euclidean_distances)
+        return np.mean(self.euclidean_distances)
 
     def acceleration_mask(self):
         return (self.acc_and_dec > 0)
@@ -96,8 +125,45 @@ class Features:
         """ create bool array that is true if car moves"""
         return np.array(self.euclidean_distances > 0.001)
 
-    ### Features
+    def normalize_angles(self, x):
+        if x > 180:
+            return np.abs(360 - x)
+        else:
+            return x
 
+    def angles_helper(self):
+        angles = np.abs(np.diff(np.degrees(np.arctan2(np.diff(self.df.y), np.diff(self.df.x)))))
+        vfunc = np.vectorize(self.normalize_angles)
+        return vfunc(angles)
+
+
+    ## Features
+
+    def radial_accel_mean(self):
+        if len(self.radial_accel) == 0:
+            return 0
+        else:
+            return np.mean(self.radial_accel)
+        
+    def radial_accel_median(self):
+        if len(self.radial_accel) == 0:
+            return 0
+        else:
+            return np.median(self.radial_accel)
+        
+        
+    def radial_accel_max(self):
+        if len(self.radial_accel) == 0:
+            return 0
+        else:
+            return np.percentile(self.radial_accel, 90)
+
+    def radial_accel_std(self):
+        if len(self.radial_accel) == 0:
+            return 0
+        else:
+            return np.std(self.radial_accel)
+                
     def break_distance(self):
         ls, num = ndimage.measurements.label(self.euclidean_distances)
         return np.sum(self.euclidean_distances) / num
@@ -214,6 +280,9 @@ class Features:
     def angle_speed_mean(self):
         return np.mean(self.angles/self.euclidean_distances)
 
+    def corners(self):
+        return len(self.angles[self.angles > 30])
+                
     def pauses_length_mean(self):
         return self.zero_or_mean(self.pauses) 
 

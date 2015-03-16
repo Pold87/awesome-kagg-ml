@@ -58,11 +58,18 @@ features = ['trip_time'
            , 'speed_times_acc_min'
            , 'speed_times_acc_std'
            , 'angle_sum'
+           , 'angle_mean'
+           , 'angle_acceleration_mean'
+#            , 'angle_speed_mean'
+           , 'corners'
            , 'pauses_length_mean'
            , 'pauses_length_mean_rural'
            , 'pauses_length_mean_city'
-           ,'break_distance'
-            
+           , 'break_distance'
+           , 'radial_accel_mean'
+           , 'radial_accel_median'
+           , 'radial_accel_max'
+           , 'radial_accel_std'            
 ]
 
 # Chunks (containing parts of the mega df)
@@ -89,8 +96,6 @@ def do_job(i, chunk):
     # Write data frames containing the features to HDF5 file
     df_features_for_this_chunk.to_hdf('/scratch/vstrobel/features_opti_32/' + file_name, 'table')
     print("Written to", file_name)
-
-
 
 
 def main():

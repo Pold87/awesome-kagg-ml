@@ -13,6 +13,10 @@ from sklearn.datasets.samples_generator import make_blobs
 from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier, ExtraTreesClassifier, GradientBoostingClassifier, GradientBoostingRegressor
 import multiprocessing as mp
+import warnings
+import operator
+
+# warnings.filterwarnings("ignore")
 
 weights = np.array([])
 
@@ -33,22 +37,20 @@ def create_submission_file(df):
 
 def classify(f, df_list, weights):
 
-    feature_df = pd.read_hdf("/scratch/vstrobel/features/" + f, key = 'table')
+    feature_df = pd.read_hdf("/scratch/vstrobel/features_opti_32/" + f, key = 'table')
     feature_df.reset_index(inplace = True)
-    feature_df = feature_df.sort(['Driver', 'Trip'])
+    feature_df['Driver'] = feature_df.Driver.astype('int')
+    feature_df['Trip'] = feature_df.Trip.astype('int')
+    sorted_df = feature_df.sort(['Driver', 'Trip'])
 
     calculated = []
 
+    for i, (d, driver_df) in enumerate(sorted_df.groupby('Driver')):
 
-    print(weights)
+        weights_mask = weights['Driver'] == d
 
-    for i, (d, driver_df) in enumerate(feature_df.groupby('Driver')):
+        weights_driver = np.array(weights[weights_mask].prob)
 
-        weights_mask = weights['Driver'] == int(d)
-        weights_driver = weights[weights_mask].prob
-
-        print(weights_driver)
-        
         amount_others = 200
         weights_others = weights_driver.mean() * np.ones(amount_others)
     
@@ -57,22 +59,32 @@ def classify(f, df_list, weights):
         others = feature_df.iloc[other_trips]
         others.Driver = np.repeat(int(0), amount_others)
     
-        submission_df = calc_prob(driver_df, others, np.append(weights_driver, weights_others))
+        all_weights = np.append(weights_driver, weights_others)
+
+        submission_df = calc_prob(driver_df, others, all_weights)
         calculated.append(submission_df)
 
     df_list.append(pd.concat(calculated))
 
 def calc_prob(df_features_driver, df_features_other, weights):
 
+
     df_train = df_features_driver.append(df_features_other)
     df_train.reset_index(inplace = True)
     df_train.Driver = df_train.Driver.astype(int)
 
-    model = RandomForestClassifier(n_estimators = 10000, min_samples_leaf=2, sample_weight = weights)
+    model = RandomForestClassifier(n_estimators = 500, min_samples_leaf=2, max_features = 'log2')
     feature_columns = df_train.iloc[:, 4:]
 
     # Train the classifier
-    model.fit(feature_columns, df_train.Driver, sample_weight=weights)
+    model.fit(feature_columns, df_train.Driver)
+    
+
+    #fw = zip(df_features_driver.columns.values[3:], model.feature_importances_)
+    #fw.sort(key = operator.itemgetter(1))
+    #print(fw)
+
+    
     df_submission = pd.DataFrame()
 
     df_submission['driver_trip'] = create_first_column(df_features_driver)
@@ -96,7 +108,7 @@ def create_first_column(df):
 
 def main():
 
-    features_path = "/scratch/vstrobel/features_angles_32"
+    features_path = "/scratch/vstrobel/features_opti_32"
     features_files = sorted(listdir(features_path))
 
     matched_probs = pd.read_csv("weights.csv")

@@ -90,7 +90,7 @@ def create_first_column(df):
 
 def main():
 
-    features_path_1 = path.join('..', 'features')
+    features_path_1 = path.join('/scratch/vstrobel/features_matched_32/')
     features_files_1 = listdir(features_path_1)
 
     #features_path_2 = path.join('..', 'features_2')

@@ -71,7 +71,7 @@ def read_chunk(chunk_num, drivers_path, drivers):
     filename = 'dataframe_32__{}.h5'.format(chunk_num)
 
     # Save dataframe in HDF5
-    df_all_drivers.to_hdf(path.join("/scratch/vstrobel/chunks32", filename),'table')#'chunks', filename), 'table')
+    df_all_drivers.to_hdf(path.join("/scratch/vstrobel/chunks32_small", filename),'table')#'chunks', filename), 'table')
 
     print("Written to", filename)
 
@@ -101,7 +101,7 @@ def main():
 
     # All trips and drivers from Kaggle:
 
-    drivers_path = "/scratch/vstrobel/drivers"
+    drivers_path = "/scratch/vstrobel/drivers_small"
 
     drivers = listdir(drivers_path)
     read_all_chunks(drivers_path, drivers, number_of_chunks)

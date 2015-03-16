@@ -8,12 +8,12 @@ import h5py
 import multiprocessing as mp
 
 DISTANCE = 50
-TOLERANCE = 0.017
+TOLERANCE = 0.01
 
 
 # Chunks (containing parts of the mega df)
 chunk_path = "/scratch/vstrobel/chunks32"
-matched_trips_path = "/home/vstrobel/awesome-kagg-ml/matched"
+matched_trips_path = "/home/vstrobel/awesome-kagg-ml/matched_volker"
 
 def rotational(theta):
     # http://en.wikipedia.org/wiki/Rotation_matrix
@@ -74,7 +74,7 @@ def similarity_trips(trips):
                 dnf = (len(st)/len(lt))
 
                 if dnf > max_sim:
-                    for i in np.random.permutation(range(0, dist, 10)):
+                    for i in np.random.permutation(range(0, dist, 1)):
 
                         new_lt = pd.DataFrame()
                         new_lt['x'] = lt.x - lt.ix[i, 'x']
@@ -110,7 +110,6 @@ def do_jobs(chunk):
     df = pd.read_hdf(path.join(chunk_path, chunk), key = 'table')
 
     for driver, trips in df.groupby(level = ['Driver']):
-        print(driver)
         new_trips = preprocessing(driver, trips)
         sims = similarity_trips(new_trips)
         h5f = h5py.File(matched_trips_path + 'data-{}.h5'.format(driver), 'w')

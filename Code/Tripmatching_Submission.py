@@ -27,7 +27,7 @@ def create_submission_file(df):
     # Write final submission
     df.to_csv('submission-matched-{}.csv'.format(file_num), index = False)
 
-matched = listdir("../tripmatching/")
+matched = listdir("/scratch/vstrobel/matched/")
 
 df_list = []
 
@@ -35,7 +35,7 @@ for f in matched:
     d = re.findall('(\d+)', f)[0]
     n = 'dataset_' + d
 
-    h5f = h5py.File('../tripmatching/' + f, 'r')
+    h5f = h5py.File("/scratch/vstrobel/matched/" + f, 'r')
     weights_matrix = h5f[n][:]
     h5f.close()
 
@@ -50,12 +50,15 @@ for f in matched:
 
 
 total = pd.concat(df_list)
-total['driver_trip'] = create_first_column(total)
 
-submission = total[['driver_trip', 'prob']]
+total.to_csv('weights.csv', index = False)
 
 
-create_submission_file(submission)
+# total['driver_trip'] = create_first_column(total)
+
+# submission = total[['driver_trip', 'prob']]
+
+# create_submission_file(submission)
 
 
 
