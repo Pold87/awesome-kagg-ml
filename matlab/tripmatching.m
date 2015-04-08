@@ -87,5 +87,7 @@ sym_scores = scores_lower(:, 1:end - 1) + scores_upper(:, 2:end)
 
 sorted = sort(sym_scores, 'descend');
 probs = mean(sorted(1:5, :)) / max(mean(sorted(1:5, :)));
-hist(probs, 20)
+% hist(probs, 20)
+
+hist(histfit(probs), 20)
 
