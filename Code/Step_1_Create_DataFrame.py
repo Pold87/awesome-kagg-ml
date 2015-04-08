@@ -1,8 +1,8 @@
-# coding: utf-8
-
+from __future__ import division
 import pandas as pd
 from os import listdir, path
 import Helpers
+import multiprocessing as mp
 
 ########### Hic sunt dracones
 #
@@ -36,8 +36,6 @@ def read_chunk(chunk_num, drivers_path, drivers):
     Read one chunk, i.e. a subset of the drivers
     """
 
-    print("Reading chunk number", chunk_num)
-
     mega_df = []
     i = 0
     for driver in drivers:
@@ -70,10 +68,10 @@ def read_chunk(chunk_num, drivers_path, drivers):
     df_all_drivers = pd.concat(mega_df)
 
     # rename 's/.*\_(\d{1})\..*$/dataframe_0$1.h5/' *.h5
-    filename = 'dataframe_{:02d}.h5'.format(chunk_num)
+    filename = 'dataframe_32__{}.h5'.format(chunk_num)
 
     # Save dataframe in HDF5
-    df_all_drivers.to_hdf(path.join(filename),'table')#'chunks', filename), 'table')
+    df_all_drivers.to_hdf(path.join("/scratch/vstrobel/chunks32_small", filename),'table')#'chunks', filename), 'table')
 
     print("Written to", filename)
 
@@ -86,18 +84,25 @@ def read_all_chunks(drivers_path, drivers, number_of_chunks):
     # Split list into parts (depending on memory capacity)
     chunked_drivers = Helpers.chunks(drivers, len(drivers) // number_of_chunks)
 
+    # pool = mp.Pool(processes=number_of_chunks)
+
+    jobs = []
+
     for chunk_num, drivers in enumerate(chunked_drivers):
 
-        read_chunk(chunk_num, drivers_path, drivers)
-
+        p = mp.Process(target = read_chunk, args = (chunk_num, drivers_path, drivers, ))
+        jobs.append(p)
+        p.start()
 
 def main():
 
     # Number of chunks (depends on memory capacities)
-    number_of_chunks = 1
+    number_of_chunks = 32
 
     # All trips and drivers from Kaggle:
-    drivers_path = path.join("..", "drivers_small")
+
+    drivers_path = "/scratch/vstrobel/drivers_small"
+
     drivers = listdir(drivers_path)
     read_all_chunks(drivers_path, drivers, number_of_chunks)
 

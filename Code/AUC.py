@@ -1,3 +1,5 @@
+from __future__ import division
+
 def AUC(probs_list):
     # very simplistic version, maybe not 100% accurate -> only approximation
     ''' Calculates the area under the receiver operant characteristic curve
@@ -5,8 +7,6 @@ def AUC(probs_list):
         probabilities
     '''
     probs_list = probs_list[probs_list[:,1].argsort()]
-
-    print(probs_list)
     
     cumulative = 0;
     y = 0
