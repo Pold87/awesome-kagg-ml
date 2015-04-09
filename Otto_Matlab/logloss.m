@@ -11,7 +11,7 @@ function [ ll ] = logloss( p, y )
 %  and 0 otherwise, and p(i, j) is the predicted probability that 
 %  observation i is in class j.
 
-   [N, M] = size(p);
+   [N, ~] = size(p);
    ll = -N  \ sum(sum(y .* log(p)));
 
 end
