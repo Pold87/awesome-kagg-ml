@@ -57,22 +57,11 @@ testfeatures = features(1:2:end, :);
 testlabelscell = classes(1:2:end, :);
 
 
-% -- bah
-trainlabels = zeros(length(trainlabelscell), 1);
-for i = 1:length(trainlabelscell)
-   trainlabels(i) = str2num(trainlabelscell{i}(end:end));
-end
+% only works for numbers of 1 digit
+trainlabels = arrayfun(@(class) str2num(class{1}(end)), trainlabelscell);
+testlabels  = arrayfun(@(class) str2num(class{1}(end)), testlabelscell);
 
-testlabels = zeros(length(testlabelscell), 1);
-for i = 1:length(testlabelscell)
-   testlabels(i) = str2num(testlabelscell{i}(end:end));
-end
-
-y = zeros(length(testlabelscell), 9);
-for i = 1:length(testlabels)
-   y(i, testlabels(i)) = 1;
-end
-% -- tot hier bah
+y = repmat(testlabels,1,9) == repmat(1:9,length(testlabels),1);
 
 % net = newff(trainfeatures, trainlabels, 5);
 % net = train(net, trainfeatures, trainlabels);
