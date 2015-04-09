@@ -49,9 +49,11 @@ end
 
 %% classify
 
-train = features(1:2:end, :);
+load('train.mat');
+
+trainfeatures = features(1:2:end, :);
 trainlabelscell = classes(1:2:end, :);
-test = features(1:2:end, :);
+testfeatures = features(1:2:end, :);
 testlabelscell = classes(1:2:end, :);
 
 
@@ -72,9 +74,9 @@ for i = 1:length(testlabels)
 end
 % -- tot hier bah
 
-net = newff(train, trainlabels, 5);
-net = train(net, train, trainlabels);
-outputs = net(inputs);
+% net = newff(trainfeatures, trainlabels, 5);
+% net = train(net, trainfeatures, trainlabels);
+% outputs = net(inputs);
 
 %% 
 y = [
