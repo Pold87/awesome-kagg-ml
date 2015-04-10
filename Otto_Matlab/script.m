@@ -61,13 +61,48 @@ testlabelscell = classes(1:2:end, :);
 trainlabels = arrayfun(@(class) str2num(class{1}(end)), trainlabelscell);
 testlabels  = arrayfun(@(class) str2num(class{1}(end)), testlabelscell);
 
-y = repmat(testlabels,1,9) == repmat(1:9,length(testlabels),1);
+y_test = repmat(testlabels, 1, 9) == repmat(1:9, length(testlabels), 1);
+y_train = repmat(trainlabels, 1, 9) == repmat(1:9, length(trainlabels), 1); 
 
-% net = newff(trainfeatures, trainlabels, 5);
-% net = train(net, trainfeatures, trainlabels);
-% outputs = net(inputs);
+%% newff
 
-%% 
+trainset = trainfeatures(1:end, :)';
+trainsetlabels = y_train(1:end, :)';
+
+testset = testfeatures(1:end, :)';
+testsetlabels = y_test(1:end, :)';
+
+n_layers = 3
+
+net = newff(trainset, trainsetlabels, n_layers);
+net = train(net, trainset, trainsetlabels);
+p_test = net(testset);
+% p_test = max(p_test, 0);
+tmp = (p_test - repmat(min(p_test), 9, 1)) ./ (repmat(max(p_test), 9, 1) - repmat(min(p_test), 9, 1));
+ll = logloss(tmp', testsetlabels')
+
+
+%% perceptron
+
+trainset = trainfeatures(1:end, :)';
+trainsetlabels = y_train(1:end, :)';
+
+testset = testfeatures(1:end, :)';
+testsetlabels = y_test(1:end, :)';
+
+net = perceptron
+net = train(net, trainset, trainsetlabels)
+
+p_test = net(testset);
+% p_test = max(p_test, 0);
+tmp = (p_test - repmat(min(p_test), 9, 1)) ./ (repmat(max(p_test), 9, 1) - repmat(min(p_test), 9, 1));
+ll = logloss(tmp', testsetlabels')
+
+
+
+
+%% test logloss
+
 y = [
    [1, 0, 0, 0, 0, 0, 0, 0, 0];
    [1, 0, 0, 0, 0, 0, 0, 0, 0];
