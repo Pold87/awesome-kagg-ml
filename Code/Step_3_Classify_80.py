@@ -15,10 +15,11 @@ from sklearn.ensemble import RandomForestClassifier,AdaBoostClassifier, ExtraTre
 import multiprocessing as mp
 import warnings
 import operator
-from sklearn.linear_model import Lasso, LassoCV
-from sklearn import grid_search
+import time
 
 # warnings.filterwarnings("ignore")
+
+weights = np.array([])
 
 class EnsembleClassifier(BaseEstimator, ClassifierMixin):
     def __init__(self, classifiers=None):
@@ -34,88 +35,112 @@ class EnsembleClassifier(BaseEstimator, ClassifierMixin):
             self.predictions_.append(classifier.predict_proba(x))
             m = np.mean(self.predictions_, axis=0)
         return m
-
+      
 
 def create_submission_file(df):
     """
     Create a submission file for kaggle from a data frame
     """
 
-#     df[['prob']] = df[['prob']] / np.max(df[['prob']])
-
     # Find file number for new file
     file_num = 0
-    while path.isfile('submission-89-{}.csv'.format(file_num)):
+    while path.isfile('submission-80-{}.csv'.format(file_num)):
         file_num += 1
 
     # Write final submission
-    df.to_csv('submission-89-{}.csv'.format(file_num), index = False)
+    df.to_csv('submission-80-{}.csv'.format(file_num), index = False)
 
 
 def classify(f, df_list):
 
-    feature_df = pd.read_hdf("/scratch/vstrobel/features_opti_32/" + f, key = 'table')
+
+    feature_df = pd.read_hdf("/scratch/vstrobel/features_opti_32_80/" + f, key = 'table')
     feature_df.reset_index(inplace = True)
+    feature_df.drop('pauses_length_mean_city', axis = 1, inplace = True)
+    feature_df.drop('speed_times_acc_mean', axis = 1, inplace = True)
+
     feature_df['Driver'] = feature_df.Driver.astype('int')
     feature_df['Trip'] = feature_df.Trip.astype('int')
     sorted_df = feature_df.sort(['Driver', 'Trip'])
 
     calculated = []
+    
+    nfold = 1
 
     for i, (d, driver_df) in enumerate(sorted_df.groupby('Driver')):
 
+#	print(d)
+
+#	print(int(time.time()))
+
+        # amount_others = int((nfold - 1) * 200)
         amount_others = 200    
+
         indeces = np.append(np.arange(i * 200), np.arange((i+1) * 200, len(feature_df)))
+
+
         other_trips = indeces[np.random.randint(0, len(indeces) - 1, amount_others)]
         others = feature_df.iloc[other_trips]
         others.Driver = np.repeat(int(0), amount_others)
     
-        submission_df = calc_prob(driver_df, others)
+        submission_df = calc_prob(driver_df, others, nfold)
         calculated.append(submission_df)
 
     df_list.append(pd.concat(calculated))
 
-def calc_prob(df_features_driver, df_features_other):
-
-    df_train = df_features_driver.append(df_features_other)
-    df_train.reset_index(inplace = True)
-    df_train.Driver = df_train.Driver.astype(int)
-
-
-#    model = RandomForestClassifier(n_estimators=5000, min_samples_leaf=2, max_depth=5)
-
-#    model = EnsembleClassifier([RandomForestClassifier(n_estimators=500, min_samples_leaf=2, max_depth=5),
-#                                GradientBoostingClassifier(n_estimators=500, min_samples_leaf=2, max_depth=4, subsample = 0.7)])         
-
-
-#     model = LassoCV()
-
-    parameters = {'criterion': ['gini', 'entropy'], 'n_estimators': [500, 700, 900], 'max_features' : ['log2', 'sqrt']}
-
-    clf = RandomForestClassifier()
-    model = grid_search.GridSearchCV(clf, parameters)
-
-    feature_columns = df_train.iloc[:, 4:]
-
-    # Train the classifier
-    model.fit(feature_columns, df_train.Driver)
-        
-    print(model.best_params_)
+def calc_prob(df_features_driver, df_features_other, nfold):
 
     df_submission = pd.DataFrame()
-
-    df_submission['driver_trip'] = create_first_column(df_features_driver)
-
-    probs_array = model.predict_proba(feature_columns[:200]) # Return array with the probability for every driver
-    # probs_array = model.predict(feature_columns[:200])
     
-    probs_df = pd.DataFrame(probs_array)
+    df_submission['driver_trip'] = create_first_column(df_features_driver)    
+    
+    all_probs = []
+    
+    for n in range(nfold):
+        
+        len_fold = int(len(df_features_driver)/nfold)
+        mir_len_fold = 200 # - len_fold
+        ind_train_pos = np.append(np.arange(0,int(n)*len_fold,1),
+                              np.arange((int(n)+1)*len_fold,len(df_features_driver),1))
+        ind_train_neg = np.arange(int(n)*mir_len_fold,int(n+1)*mir_len_fold) 
 
-    df_submission['prob'] = np.array(probs_df.iloc[:, 1])
-#    df_submission['prob'] = np.array(probs_df)
+        df_train = df_features_driver.iloc[ind_train_pos].append(df_features_other.iloc[ind_train_neg])
+#        df_train.reset_index(inplace = True)
+        df_train.Driver = df_train.Driver.astype(int)     
+
+        df_test = df_features_driver
+#        df_test.reset_index(inplace = True)
+        df_test.Driver = df_test.Driver.astype(int)      
+
+        # Specify Models 
+        model = EnsembleClassifier([RandomForestClassifier(n_estimators=1000, min_samples_leaf=2, max_depth=3),
+                                    RandomForestClassifier(n_estimators=1000, min_samples_leaf=2, max_depth=4),
+                                    RandomForestClassifier(n_estimators=1000, min_samples_leaf=2, max_depth=5),
+                                    RandomForestClassifier(n_estimators=1000, min_samples_leaf=2, max_depth=6),
+                                    RandomForestClassifier(n_estimators=1000, min_samples_leaf=2, max_depth=None)
+])         
+        
+        feature_columns_train= df_train.iloc[:, 4:]
+        feature_columns_test= df_test.iloc[:, 4:]
+        
+        # Train the classifier
+        model.fit(feature_columns_train, df_train.Driver)
+        
+        probs_array = model.predict_proba(feature_columns_test)
+
+        print(probs_array)
+
+        
+        if n==0:
+            all_probs = np.array(probs_array[:,1])
+        else:
+            all_probs = all_probs + np.array(probs_array[:,1])
+    
+    all_probs = all_probs / nfold
+    df_submission['prob'] = all_probs
 
     return df_submission
-
+    
 def create_first_column(df):
     """
     Create first column for the submission csv, e.g.
@@ -128,7 +153,7 @@ def create_first_column(df):
 
 def main():
 
-    features_path = "/scratch/vstrobel/features_opti_32/"
+    features_path = "/scratch/vstrobel/features_opti_32_80"
     features_files = sorted(listdir(features_path))
 
     # Get data frame that contains each trip with its features

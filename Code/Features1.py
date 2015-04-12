@@ -3,13 +3,15 @@ import pandas as pd
 import numpy as np
 from scipy import spatial, ndimage
 from collections import Counter
-
+import random
+from sklearn.tree import DecisionTreeClassifier
 
 
 class Features:
-    def __init__(self, df, features):
+    def __init__(self, df, features, clf):
         self.df = df
         self.features = features
+        self.clf = clf
         self.driver = df.index.get_level_values('Driver')[0]
         self.trip = df.index.get_level_values('Trip')[0]
         self.xDiff = np.diff(self.df.x)
@@ -30,11 +32,14 @@ class Features:
         self.accelerations = self.acc_and_dec[self.acc_and_dec > 0]
         self.decelerations = self.acc_and_dec[self.acc_and_dec < 0]
 
-        self.city_mask = (self.euclidean_distances > 5) & (self.euclidean_distances < 45)
+        self.segmented_df = self.segment()
+        self.city_mask = np.array(self.segmented_df.city)[:-1]
+
         self.city_speeds = self.euclidean_distances[self.city_mask]
-        self.rural_mask = (self.euclidean_distances > 40) & (self.euclidean_distances < 60)
+        self.rural_mask = np.array(self.segmented_df.rural)[:-1]
         self.rural_speeds = self.euclidean_distances[self.rural_mask]
-        self.freeway_mask = (self.euclidean_distances > 55) & (self.euclidean_distances < 120)
+        self.freeway_mask = np.array(self.segmented_df.freeway)[:-1]
+
         self.freeway_speeds = self.euclidean_distances[self.freeway_mask]
         self.city_acc_and_dec = self.acc_and_dec[self.city_mask[:-1]]
         self.rural_acc_and_dec = self.acc_and_dec[self.rural_mask[:-1]]
@@ -67,6 +72,122 @@ class Features:
 
         self.curve_mask = self.curve_mask_helper(np.pi / 16)        
         self.radial_accel = self.radial_accel(50)
+
+    #    print(clf.fit(training_data, [0]*10 + [1]*10 + [2]*10))
+    #    print(clf.predict([2,30,500,25]))
+    #    print(clf.predict([0,120,10,7]))
+    #    print(clf.predict([0,0,1500,75]))
+    
+    
+    
+    #Segmenting trip into different sections
+    def segment(self):
+        length = len(self.df.index)
+        df_temp = self.df.copy()
+        df_temp.insert(2, 'turns',[0]*length)
+        df_temp.insert(3, 'city',[False]*length)
+        df_temp.insert(4, 'rural',[False]*length)
+        df_temp.insert(5, 'freeway',[False]*length)
+        i=0
+        mins = 1
+        secs = mins*60
+        #go over trip in steps of 10 seconds checking if a turn happened
+        while (i+10)<=length:
+            ten_steps=i+10
+            j=i
+            ten_sec_df = df_temp.iloc[i:ten_steps]
+            turn = self.curve_mask_helper2(ten_sec_df,5,100)
+            turns = turn.sum()
+            if turns>=3:
+                df_temp.turns.iloc[ten_steps] = 1
+                i=i+10
+            else:
+                i=i+1
+        j=0
+        while j<=length:
+            k=j+60
+            if k>length:
+                prev_min = self.calculate_measures(df_temp.iloc[j-secs:j])
+                classification = self.clf.predict(prev_min)
+            elif j==0 or (k+60)>length:
+                this_min = self.calculate_measures(df_temp.iloc[j:k])
+                classification_this = self.clf.predict(this_min)
+                classification = classification_this
+            else:
+                this_min = self.calculate_measures(df_temp.iloc[j:k])
+                classification_this = self.clf.predict(this_min)
+                #take the measures of the previous and next minute as well
+                prev_min = self.calculate_measures(df_temp.iloc[j-secs:j])
+                next_min = self.calculate_measures(df_temp.iloc[k:k+secs])
+                #also classify those measures
+                classification_prev = self.clf.predict(prev_min)
+                classification_next = self.clf.predict(next_min)
+                #assign the majority of classifications to this minute
+                classes = classification_this.tolist() + classification_prev.tolist() + classification_next.tolist()
+                counts = np.bincount(classes)
+                classification = [np.argmax(counts)]
+            if classification.__contains__(0):
+                df_temp.freeway.iloc[j:k] = True
+            elif classification.__contains__(1):
+                df_temp.rural.iloc[j:k] = True
+            else:
+                df_temp.city.iloc[j:k] = True
+            j=k
+        #df_temp.to_csv('separated.csv')
+
+
+        return df_temp          
+        
+    def curve_mask_helper2(self, df, lower_thresh, upper_thresh):
+        df.euclidean_distances = self.euclidean_helper2(df)
+        df.euclidean_distances_2 = self.euclidean_helper_2_2(df)
+        angles = np.abs(np.arccos(((df.euclidean_distances[0:-1]**2) + (df.euclidean_distances[1:]**2)-(df.euclidean_distances_2[0:]))/(2*df.euclidean_distances[0:-1]*df.euclidean_distances[1:])))
+        return np.logical_and(angles < upper_thresh, angles >= lower_thresh)
+        
+    def euclidean_helper2(self,df):
+        """
+        Calculate euclidean distance
+        """
+        # Calculate miles per hour (I assume it's somewhere in the US)
+        return np.sqrt(np.diff(df.x) ** 2 + np.diff(df.y) ** 2) * 2.2369
+        
+    def euclidean_helper_2_2(self,df):
+        """
+        Calculate euclidean distance between point t and point t+2
+        """
+        diff1 = np.subtract(df.x[2:], df.x[0:-2]) ** 2
+        diff2 = np.subtract(df.y[2:], df.y[0:-2]) ** 2
+        return np.sqrt(diff1 + diff2)
+        
+    def mean_speed2(self,df):
+        eucl_dist= np.sqrt(np.diff(df.x) ** 2 + np.diff(df.y) ** 2) * 2.2369
+        return np.mean(eucl_dist)
+        
+    def mean_pause_duration(self,df):
+        eucl_dist =  np.sqrt(np.diff(df.x) ** 2 + np.diff(df.y) ** 2) * 2.2369
+        breaks = np.array(eucl_dist > 0.001)
+        duration = self.zero_or_mean2(breaks)
+        return duration
+        
+    def mean_dist_between_stops(self,df):
+        eucl_dist =  np.sqrt(np.diff(df.x) ** 2 + np.diff(df.y) ** 2)
+        ls, num = ndimage.measurements.label(eucl_dist)
+        return np.sum(eucl_dist) / num
+    
+    def zero_or_mean2(self,speeds, default = 0):
+        if len(speeds) == 0:
+            return default
+        else:
+            return np.mean(speeds)
+            
+    def calculate_measures(self,df):
+        avrg_speed = self.mean_speed2(df)
+        avrg_pause_duration = self.mean_pause_duration(df)
+        avrg_distance_stops = self.mean_dist_between_stops(df)
+        number_of_turns = df.turns.sum()
+        minute_measures = [number_of_turns, avrg_pause_duration, avrg_distance_stops, avrg_speed]
+        return minute_measures
+
 
     def curve_mask_helper(self, threshold):
         
